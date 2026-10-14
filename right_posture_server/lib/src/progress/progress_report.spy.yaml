@@ -1,0 +1,11 @@
+### Cross-workout progress computed on the server with the shared core engine.
+class: ProgressReport
+fields:
+  generatedAt: DateTime
+  workoutCount: int
+  setCount: int
+  totalReps: int
+  ### Consecutive local days (ending today or yesterday) with a workout.
+  streakDays: int
+  activeDaysLast28: int
+  exercises: List<ExerciseProgress>

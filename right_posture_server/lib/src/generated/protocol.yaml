@@ -1,0 +1,21 @@
+anonymousIdp:
+  - login:
+emailIdp:
+  - login:
+  - startRegistration:
+  - verifyRegistrationCode:
+  - finishRegistration:
+  - startPasswordReset:
+  - verifyPasswordResetCode:
+  - finishPasswordReset:
+  - hasAccount:
+jwtRefresh:
+  - refreshAccessToken:
+progress:
+  - report:
+workout:
+  - upload:
+  - updateNote:
+  - list:
+  - status:
+  - deleteAll:

@@ -1,0 +1,20 @@
+### Progress for one exercise.
+class: ExerciseProgress
+fields:
+  ### `ExerciseId` name from the core engine, e.g. `squat`.
+  exercise: String
+  sets: int
+  reps: int
+  goodReps: int
+  warningReps: int
+  degradedReps: int
+  averageFormScore: double?
+  bestFormScore: double?
+  weeklySets: int
+  weeklyReps: int
+  weeklyFormScore: double?
+  ### Most frequent recorded issue metric, if any.
+  topIssue: String?
+  topIssueCount: int
+  ### Evidence-linked, plain-language insights.
+  insights: List<String>

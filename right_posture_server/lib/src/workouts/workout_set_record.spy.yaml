@@ -1,0 +1,18 @@
+### One exercise set inside a synced workout.
+class: WorkoutSetRecord
+table: workout_set_record
+fields:
+  workoutId: int, relation(name=workout_sets, parent=workout_record, onDelete=Cascade)
+  authUserId: UuidValue
+  exercise: String
+  completedAt: DateTime
+  totalReps: int
+  goodReps: int
+  warningReps: int
+  degradedReps: int
+  formScore: double?
+  consistencyScore: double?
+  degradationStartRep: int?
+indexes:
+  workout_set_record_owner_exercise_idx:
+    fields: authUserId, exercise, completedAt

@@ -1,0 +1,605 @@
+import 'dart:async';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'domain/models.dart';
+import 'domain/angle_smoother.dart';
+import 'domain/exercise.dart';
+import 'domain/exercise_registry.dart';
+import 'domain/rep_evaluator.dart';
+import 'domain/session_summary.dart';
+import 'domain/squat_rep_detector.dart';
+import 'domain/workout.dart';
+import 'pose_landmark_mapper.dart';
+import 'history_storage.dart';
+
+enum SessionPhase {
+  idle,
+  preparing,
+  countdown,
+  tracking,
+  complete,
+  workoutComplete,
+}
+
+class SessionState {
+  SessionState({
+    required this.phase,
+    required this.selectedExercise,
+    List<Rep> reps = const [],
+    Map<String, double>? baseline,
+    this.latestFeedback,
+    this.summary,
+    this.error,
+    this.coaching,
+    this.placementStable = false,
+    this.placementGuidance,
+    this.countdownValue,
+    this.targetRepCount,
+    WorkoutState? workout,
+  }) : reps = List.unmodifiable(reps),
+       baseline = baseline == null ? null : Map.unmodifiable(baseline),
+       workout = workout ?? WorkoutState();
+
+  factory SessionState.idle() => SessionState(
+    phase: SessionPhase.idle,
+    selectedExercise: ExerciseId.squat,
+  );
+
+  final SessionPhase phase;
+  final ExerciseId selectedExercise;
+  final List<Rep> reps;
+  final Map<String, double>? baseline;
+  final Rep? latestFeedback;
+  final SessionSummary? summary;
+  final String? error;
+  final SquatCoaching? coaching;
+  final bool placementStable;
+  final String? placementGuidance;
+  final int? countdownValue;
+  final int? targetRepCount;
+  final WorkoutState workout;
+}
+
+final sessionControllerProvider =
+    NotifierProvider<SessionController, SessionState>(SessionController.new);
+
+class SessionController extends Notifier<SessionState> {
+  late RepDetector _repDetector;
+  late RepEvaluator _evaluator;
+  late AngleSmoother _kneeAngleSmoother;
+  late AngleSmoother _leftElbowSmoother;
+  late AngleSmoother _rightElbowSmoother;
+  late AngleSmoother _leftArmElevationSmoother;
+  late AngleSmoother _rightArmElevationSmoother;
+  final ExerciseRegistry _registry = const ExerciseRegistry();
+  String? _trackedSide;
+  Timer? _countdownTimer;
+  int _stablePlacementFrames = 0;
+  int _countdownLossFrames = 0;
+
+  @override
+  SessionState build() {
+    ref.onDispose(_cancelCountdown);
+    _resetEngines(ExerciseId.squat);
+    return SessionState.idle();
+  }
+
+  void startSession() => prepareSession();
+
+  void prepareSession({ExerciseId exercise = ExerciseId.squat}) {
+    _cancelCountdown();
+    _resetEngines(exercise);
+    _stablePlacementFrames = 0;
+    _countdownLossFrames = 0;
+    state = SessionState(
+      phase: SessionPhase.preparing,
+      selectedExercise: exercise,
+      placementGuidance: _registry.profileFor(exercise).setupInstruction,
+      workout: state.workout,
+    );
+  }
+
+  void acceptPreparationResult(PlacementResult result) {
+    if (state.phase != SessionPhase.preparing &&
+        state.phase != SessionPhase.countdown) {
+      return;
+    }
+    if (!result.isReady) {
+      if (state.phase == SessionPhase.countdown) {
+        _countdownLossFrames++;
+        if (_countdownLossFrames < 2) return;
+      }
+      _stablePlacementFrames = 0;
+      _countdownLossFrames = 0;
+      _cancelCountdown();
+      state = SessionState(
+        phase: SessionPhase.preparing,
+        selectedExercise: state.selectedExercise,
+        placementGuidance: result.message,
+        targetRepCount: state.targetRepCount,
+        workout: state.workout,
+      );
+      return;
+    }
+    _countdownLossFrames = 0;
+    if (state.phase == SessionPhase.countdown) return;
+    _stablePlacementFrames++;
+    final stable = _stablePlacementFrames >= 3;
+    if (state.placementStable == stable &&
+        state.placementGuidance == result.message) {
+      return;
+    }
+    state = SessionState(
+      phase: SessionPhase.preparing,
+      selectedExercise: state.selectedExercise,
+      placementStable: stable,
+      placementGuidance: result.message,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+    if (stable) startCountdown();
+  }
+
+  void setTargetRepCount(int? value) {
+    if (state.phase != SessionPhase.preparing ||
+        (value != null && value <= 0)) {
+      return;
+    }
+    state = SessionState(
+      phase: state.phase,
+      selectedExercise: state.selectedExercise,
+      placementStable: state.placementStable,
+      placementGuidance: state.placementGuidance,
+      targetRepCount: value,
+      workout: state.workout,
+    );
+  }
+
+  void startCountdown() {
+    if (state.phase != SessionPhase.preparing || !state.placementStable) return;
+    _cancelCountdown();
+    state = SessionState(
+      phase: SessionPhase.countdown,
+      selectedExercise: state.selectedExercise,
+      placementStable: true,
+      placementGuidance: state.placementGuidance,
+      countdownValue: 3,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+    _countdownTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => advanceCountdown(),
+    );
+  }
+
+  void advanceCountdown() {
+    if (state.phase != SessionPhase.countdown) return;
+    final value = state.countdownValue ?? 3;
+    if (value <= 1) {
+      startTracking();
+      return;
+    }
+    state = SessionState(
+      phase: SessionPhase.countdown,
+      selectedExercise: state.selectedExercise,
+      placementStable: true,
+      placementGuidance: state.placementGuidance,
+      countdownValue: value - 1,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+  }
+
+  void startTracking() {
+    _cancelCountdown();
+    _resetEngines(state.selectedExercise);
+    state = SessionState(
+      phase: SessionPhase.tracking,
+      selectedExercise: state.selectedExercise,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+  }
+
+  void acceptPoseSample(SquatFrameSample sample) {
+    if (state.phase != SessionPhase.tracking || state.error != null) return;
+    final confidenceOk = sample.confidence >= 0.6;
+    if (!confidenceOk) {
+      trackingInterrupted();
+      return;
+    }
+    _trackedSide ??= sample.side;
+    if (sample.side != _trackedSide) return;
+    final smoothedAngle = _kneeAngleSmoother.add(sample.kneeAngle);
+    if (smoothedAngle == null) return;
+    final detector = _repDetector as SquatRepDetector;
+    final completion = detector.addFrame(
+      MovementFrame(
+        timestamp: DateTime.now(),
+        values: {MovementMetric.kneeAngle: smoothedAngle},
+        confidence: {MovementMetric.kneeAngle: sample.confidence},
+        trackedSide: switch (sample.side) {
+          'left' => TrackedSide.left,
+          'right' => TrackedSide.right,
+          _ => TrackedSide.unknown,
+        },
+      ),
+    );
+    final coaching = detector.coachingFor(smoothedAngle);
+    if (completion == null) {
+      if (coaching == state.coaching) return;
+      state = SessionState(
+        phase: state.phase,
+        selectedExercise: state.selectedExercise,
+        reps: state.reps,
+        baseline: state.baseline,
+        latestFeedback: state.latestFeedback,
+        coaching: coaching,
+        targetRepCount: state.targetRepCount,
+        workout: state.workout,
+      );
+      return;
+    }
+    final rep = _evaluator.evaluate(
+      {'knee': completion.minimumValues[MovementMetric.kneeAngle]!},
+      confidenceOk: true,
+      metrics: completion.metrics,
+    );
+    if (rep == null) return;
+    _trackedSide = null;
+    _kneeAngleSmoother.reset();
+    _recordRep(rep, coaching: coaching);
+  }
+
+  void _recordRep(Rep rep, {SquatCoaching? coaching}) {
+    final reps = [...state.reps, rep];
+    state = SessionState(
+      phase: SessionPhase.tracking,
+      selectedExercise: state.selectedExercise,
+      reps: reps,
+      baseline: _evaluator.baseline,
+      latestFeedback: rep,
+      coaching: coaching,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+    final target = state.targetRepCount;
+    if (target != null && reps.length >= target) endSession();
+  }
+
+  void acceptBicepCurlSample(BicepCurlFrameSample sample) {
+    if (state.phase != SessionPhase.tracking ||
+        state.selectedExercise != ExerciseId.bicepCurl ||
+        state.error != null) {
+      return;
+    }
+    final left = _leftElbowSmoother.add(sample.leftElbowAngle);
+    final right = _rightElbowSmoother.add(sample.rightElbowAngle);
+    if (left == null || right == null) return;
+    final completion = _repDetector.addFrame(
+      MovementFrame(
+        timestamp: DateTime.now(),
+        values: {
+          MovementMetric.leftElbowAngle: left,
+          MovementMetric.rightElbowAngle: right,
+          MovementMetric.torsoVerticalPosition: sample.torsoVerticalPosition,
+        },
+        confidence: {
+          MovementMetric.leftElbowAngle: sample.leftConfidence,
+          MovementMetric.rightElbowAngle: sample.rightConfidence,
+          MovementMetric.torsoVerticalPosition: sample.torsoConfidence,
+        },
+        trackedSide: TrackedSide.bilateral,
+      ),
+    );
+    if (completion == null) return;
+    final rep = _evaluator.evaluate(
+      {
+        'left': completion.minimumValues[MovementMetric.leftElbowAngle]!,
+        'right': completion.minimumValues[MovementMetric.rightElbowAngle]!,
+      },
+      confidenceOk: true,
+      metrics: completion.metrics,
+    );
+    if (rep == null) return;
+    _leftElbowSmoother.reset();
+    _rightElbowSmoother.reset();
+    _recordRep(rep);
+  }
+
+  void acceptLateralRaiseSample(LateralRaiseFrameSample sample) {
+    _acceptBilateralArmSample(sample, ExerciseId.lateralRaise);
+  }
+
+  void acceptShoulderPressSample(LateralRaiseFrameSample sample) {
+    _acceptBilateralArmSample(sample, ExerciseId.shoulderPress);
+  }
+
+  void _acceptBilateralArmSample(
+    LateralRaiseFrameSample sample,
+    ExerciseId exercise,
+  ) {
+    if (state.phase != SessionPhase.tracking ||
+        state.selectedExercise != exercise ||
+        state.error != null) {
+      return;
+    }
+    final left = _leftArmElevationSmoother.add(sample.leftArmElevation);
+    final right = _rightArmElevationSmoother.add(sample.rightArmElevation);
+    if (left == null || right == null) return;
+    final completion = _repDetector.addFrame(
+      MovementFrame(
+        timestamp: DateTime.now(),
+        values: {
+          MovementMetric.leftArmElevation: left,
+          MovementMetric.rightArmElevation: right,
+          MovementMetric.leftElbowAngle: sample.leftElbowAngle,
+          MovementMetric.rightElbowAngle: sample.rightElbowAngle,
+          MovementMetric.torsoLean: sample.torsoLean,
+        },
+        confidence: {
+          MovementMetric.leftArmElevation: sample.leftConfidence,
+          MovementMetric.rightArmElevation: sample.rightConfidence,
+          MovementMetric.leftElbowAngle: sample.leftConfidence,
+          MovementMetric.rightElbowAngle: sample.rightConfidence,
+          MovementMetric.torsoLean: sample.torsoConfidence,
+        },
+        trackedSide: TrackedSide.bilateral,
+      ),
+    );
+    if (completion == null) return;
+    final rep = _evaluator.evaluate(
+      {
+        'left': completion.maximumValues[MovementMetric.leftArmElevation]!,
+        'right': completion.maximumValues[MovementMetric.rightArmElevation]!,
+        'leftElbow': exercise == ExerciseId.shoulderPress
+            ? completion.maximumValues[MovementMetric.leftElbowAngle]!
+            : completion.minimumValues[MovementMetric.leftElbowAngle]!,
+        'rightElbow': exercise == ExerciseId.shoulderPress
+            ? completion.maximumValues[MovementMetric.rightElbowAngle]!
+            : completion.minimumValues[MovementMetric.rightElbowAngle]!,
+      },
+      confidenceOk: true,
+      metrics: completion.metrics,
+    );
+    if (rep == null) return;
+    _leftArmElevationSmoother.reset();
+    _rightArmElevationSmoother.reset();
+    _recordRep(rep);
+  }
+
+  void endSession() {
+    if (state.phase != SessionPhase.tracking) return;
+    final summary = summarizeSession(
+      state.reps,
+      exercise: state.selectedExercise,
+    );
+    final completed = CompletedSet(
+      setNumber: state.workout.completedSets.length + 1,
+      exercise: state.selectedExercise,
+      completedAt: DateTime.now(),
+      reps: state.reps,
+      summary: summary,
+    );
+    state = SessionState(
+      phase: SessionPhase.complete,
+      selectedExercise: state.selectedExercise,
+      reps: state.reps,
+      baseline: state.baseline,
+      coaching: state.coaching,
+      summary: summary,
+      workout: WorkoutState(
+        completedSets: [...state.workout.completedSets, completed],
+      ),
+      targetRepCount: state.targetRepCount,
+    );
+  }
+
+  void nextSet() {
+    if (state.phase != SessionPhase.complete) return;
+    prepareSession(exercise: state.selectedExercise);
+  }
+
+  void changeExercise() {
+    if (state.phase != SessionPhase.complete) return;
+    _cancelCountdown();
+    _resetEngines(ExerciseId.squat);
+    state = SessionState(
+      phase: SessionPhase.idle,
+      selectedExercise: ExerciseId.squat,
+      workout: state.workout,
+    );
+  }
+
+  void finishWorkout() {
+    if (state.phase != SessionPhase.complete ||
+        state.workout.completedSets.isEmpty) {
+      return;
+    }
+    state = SessionState(
+      phase: SessionPhase.workoutComplete,
+      selectedExercise: state.selectedExercise,
+      workout: WorkoutState(
+        completedSets: state.workout.completedSets,
+        isFinished: true,
+      ),
+    );
+    try {
+      unawaited(
+        ref
+            .read(historyStorageProvider)
+            .saveWorkout(state.workout)
+            .catchError((_) {}),
+      );
+    } catch (_) {
+      // Local history failure never blocks completed workout flow.
+    }
+  }
+
+  void reportFailure(String message) {
+    if (state.phase != SessionPhase.tracking) return;
+    _resetTrackingInput();
+    state = SessionState(
+      phase: state.phase,
+      selectedExercise: state.selectedExercise,
+      reps: state.reps,
+      baseline: state.baseline,
+      coaching: state.coaching,
+      error: message,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+  }
+
+  void retry() {
+    if (state.error == null) return;
+    state = SessionState(
+      phase: state.phase,
+      selectedExercise: state.selectedExercise,
+      reps: state.reps,
+      baseline: state.baseline,
+      coaching: state.coaching,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+  }
+
+  void reset() {
+    _cancelCountdown();
+    _resetEngines(ExerciseId.squat);
+    state = SessionState.idle();
+  }
+
+  void trackingInterrupted({bool immediate = true}) {
+    if (state.phase == SessionPhase.preparing ||
+        state.phase == SessionPhase.countdown) {
+      if (immediate) _countdownLossFrames = 1;
+      acceptPreparationResult(
+        const PlacementResult(
+          PlacementStatus.missingLandmarks,
+          'Position lost — step into frame',
+        ),
+      );
+      return;
+    }
+    if (state.phase != SessionPhase.tracking) return;
+    _resetTrackingInput();
+    state = SessionState(
+      phase: state.phase,
+      selectedExercise: state.selectedExercise,
+      reps: state.reps,
+      baseline: state.baseline,
+      targetRepCount: state.targetRepCount,
+      workout: state.workout,
+    );
+  }
+
+  void _resetEngines(ExerciseId exercise) {
+    _repDetector = _registry.detectorFor(exercise);
+    _evaluator = switch (exercise) {
+      ExerciseId.bicepCurl => RepEvaluator(
+        bicepCurlExerciseThresholds(),
+        exercise: ExerciseId.bicepCurl,
+        metrics: const {
+          'left': MovementMetric.leftElbowAngle,
+          'right': MovementMetric.rightElbowAngle,
+        },
+      ),
+      ExerciseId.lateralRaise => RepEvaluator(
+        lateralRaiseExerciseThresholds(),
+        exercise: ExerciseId.lateralRaise,
+        metrics: const {
+          'left': MovementMetric.leftArmElevation,
+          'right': MovementMetric.rightArmElevation,
+          'leftElbow': MovementMetric.leftElbowAngle,
+          'rightElbow': MovementMetric.rightElbowAngle,
+        },
+      ),
+      ExerciseId.shoulderPress => RepEvaluator(
+        shoulderPressExerciseThresholds(),
+        exercise: ExerciseId.shoulderPress,
+        metrics: const {
+          'left': MovementMetric.leftArmElevation,
+          'right': MovementMetric.rightArmElevation,
+          'leftElbow': MovementMetric.leftElbowAngle,
+          'rightElbow': MovementMetric.rightElbowAngle,
+        },
+      ),
+      _ => RepEvaluator(squatExerciseThresholds()),
+    };
+    _kneeAngleSmoother = AngleSmoother();
+    _leftElbowSmoother = AngleSmoother();
+    _rightElbowSmoother = AngleSmoother();
+    _leftArmElevationSmoother = AngleSmoother();
+    _rightArmElevationSmoother = AngleSmoother();
+    _trackedSide = null;
+  }
+
+  void _resetTrackingInput() {
+    _repDetector.reset();
+    _kneeAngleSmoother.reset();
+    _leftElbowSmoother.reset();
+    _rightElbowSmoother.reset();
+    _leftArmElevationSmoother.reset();
+    _rightArmElevationSmoother.reset();
+    _trackedSide = null;
+  }
+
+  void _cancelCountdown() {
+    _countdownTimer?.cancel();
+    _countdownTimer = null;
+  }
+}
+
+ExerciseThresholds squatExerciseThresholds() => ExerciseThresholds(
+  joints: const {
+    'knee': JointThreshold(minimum: 0, maximum: 140, deviationThreshold: 20),
+  },
+  persistenceCount: 3,
+);
+
+ExerciseThresholds bicepCurlExerciseThresholds() => ExerciseThresholds(
+  joints: const {
+    'left': JointThreshold(minimum: 0, maximum: 130, deviationThreshold: 20),
+    'right': JointThreshold(minimum: 0, maximum: 130, deviationThreshold: 20),
+  },
+  persistenceCount: 3,
+);
+
+ExerciseThresholds lateralRaiseExerciseThresholds() => ExerciseThresholds(
+  joints: const {
+    'left': JointThreshold(minimum: 70, maximum: 110, deviationThreshold: 15),
+    'right': JointThreshold(minimum: 70, maximum: 110, deviationThreshold: 15),
+    'leftElbow': JointThreshold(
+      minimum: 0,
+      maximum: 180,
+      deviationThreshold: 20,
+    ),
+    'rightElbow': JointThreshold(
+      minimum: 0,
+      maximum: 180,
+      deviationThreshold: 20,
+    ),
+  },
+  persistenceCount: 3,
+);
+
+ExerciseThresholds shoulderPressExerciseThresholds() => ExerciseThresholds(
+  joints: const {
+    'left': JointThreshold(minimum: 145, maximum: 180, deviationThreshold: 15),
+    'right': JointThreshold(minimum: 145, maximum: 180, deviationThreshold: 15),
+    'leftElbow': JointThreshold(
+      minimum: 145,
+      maximum: 180,
+      deviationThreshold: 15,
+    ),
+    'rightElbow': JointThreshold(
+      minimum: 145,
+      maximum: 180,
+      deviationThreshold: 15,
+    ),
+  },
+  persistenceCount: 3,
+);

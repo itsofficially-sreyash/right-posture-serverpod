@@ -1,0 +1,11 @@
+name: right_posture_core
+description: Pure-Dart movement and analytics engine shared by the Right Posture app and server.
+publish_to: none
+
+environment:
+  sdk: '^3.12.2'
+
+resolution: workspace
+
+dev_dependencies:
+  lints: '>=3.0.0 <7.0.0'

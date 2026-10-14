@@ -1,0 +1,5 @@
+### A workout returned to the app for restoring history on any device.
+class: SyncedWorkout
+fields:
+  clientId: String
+  payload: String

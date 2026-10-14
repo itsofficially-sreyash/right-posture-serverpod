@@ -1,0 +1,12 @@
+name: _
+publish_to: none
+
+environment:
+  sdk: '^3.12.2'
+
+workspace:
+  - right_posture_client
+  - right_posture_server
+  - right_posture_flutter
+  - right_posture_core
+

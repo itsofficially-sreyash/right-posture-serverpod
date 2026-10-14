@@ -1,0 +1,7 @@
+### Summary of the signed-in user's cloud backup.
+class: SyncStatus
+fields:
+  workoutCount: int
+  setCount: int
+  totalReps: int
+  lastCompletedAt: DateTime?

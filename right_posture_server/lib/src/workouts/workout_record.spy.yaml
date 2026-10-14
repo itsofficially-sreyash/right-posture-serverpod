@@ -1,0 +1,26 @@
+### A finished workout synced from a user's phone. Only bounded summary
+### evidence is stored; camera frames and pose landmarks never leave the device.
+class: WorkoutRecord
+table: workout_record
+fields:
+  ### Owner of the workout (Serverpod auth user id).
+  authUserId: UuidValue
+  ### Stable id assigned by the app, used to make uploads idempotent.
+  clientId: String
+  completedAt: DateTime
+  note: String?
+  setCount: int
+  totalReps: int
+  ### Average form score across scored sets, if any set was scored.
+  averageFormScore: double?
+  ### Versioned summary JSON produced by the shared core engine.
+  payload: String
+  ### Per-set rows for querying; loaded with `include`.
+  sets: List<WorkoutSetRecord>?, relation(name=workout_sets)
+  uploadedAt: DateTime, default=now
+indexes:
+  workout_record_owner_client_idx:
+    fields: authUserId, clientId
+    unique: true
+  workout_record_owner_completed_idx:
+    fields: authUserId, completedAt
