@@ -20,7 +20,7 @@ class ProgressReportView extends StatelessWidget {
           spacing: AppSpacing.small,
           runSpacing: AppSpacing.small,
           children: [
-            StatTile(label: 'Workouts', value: '${report.workoutCount}'),
+            StatTile(label: 'Sessions', value: '${report.workoutCount}'),
             StatTile(label: 'Sets', value: '${report.setCount}'),
             StatTile(label: 'Reps', value: '${report.totalReps}'),
             StatTile(label: 'Day streak', value: '${report.streakDays}'),
@@ -34,7 +34,7 @@ class ProgressReportView extends StatelessWidget {
         if (report.exercises.isEmpty)
           const InfoCard(
             icon: Icons.insights,
-            text: 'No synced workouts yet.',
+            text: 'No synced sessions yet.',
           )
         else
           for (final exercise in report.exercises) ...[

@@ -2,7 +2,7 @@
 
 ## Right Posture
 
-On-device exercise-form coach (ML Kit pose detection) with a Serverpod backend.
+Home physiotherapy companion: on-device exercise-form guidance (ML Kit pose detection) for patients, with a Serverpod backend and physio sharing. User-facing text says "session" and "physio"; code names `Workout*`/`Coach*` are internal.
 
 - `right_posture_core/`: pure-Dart movement and analytics engine shared by app and server. The rep detectors, evaluator and analytics are verified logic. Do not change their behaviour without the user's explicit approval.
 - `right_posture_server/`: `WorkoutEndpoint` (idempotent upload, list, status, updateNote, deleteAll) and `ProgressEndpoint` (server-computed `ProgressReport`). Auth uses email and anonymous IdPs.

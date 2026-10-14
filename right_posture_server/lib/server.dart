@@ -46,7 +46,9 @@ void run(List<String> args) async {
     cacheBustingConfig.mountPrefix,
   );
 
-  // Coach sharing page: athletes send this link to their coach.
+  // Physio sharing page: patients send this link to their physiotherapist.
+  // `/coach/` keeps links created before the rename working.
+  pod.webServer.addRoute(CoachWebRoute(), '/physio/:code');
   pod.webServer.addRoute(CoachWebRoute(), '/coach/:code');
 
   // Setup the app config route.

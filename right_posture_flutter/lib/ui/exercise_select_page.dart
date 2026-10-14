@@ -53,7 +53,7 @@ class ExerciseSelectPage extends ConsumerWidget {
         actions: [
           IconButton(
             key: const Key('open_profile'),
-            tooltip: onOpenProfile == null ? 'Coaching settings' : 'Profile',
+            tooltip: onOpenProfile == null ? 'Guidance settings' : 'Profile',
             onPressed: onOpenProfile ?? () => _openSettings(context),
             icon: const Icon(Icons.account_circle_outlined),
           ),
@@ -137,7 +137,7 @@ class _ExerciseGrid extends StatelessWidget {
         id: ExerciseId.squat,
         keyName: 'select_squat',
         title: 'Squat',
-        description: 'Lower-body power and form tracking',
+        description: 'Lower-limb strength and form tracking',
         icon: Icons.accessibility_new,
         status: 'CAMERA GUIDED',
         accent: AppColors.success,

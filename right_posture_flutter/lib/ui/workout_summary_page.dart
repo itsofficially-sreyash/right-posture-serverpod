@@ -74,7 +74,7 @@ class WorkoutSummaryView extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Workout Complete',
+                          'Session Complete',
                           style: Theme.of(context).textTheme.headlineLarge,
                         ),
                         const SizedBox(height: AppSpacing.small),
@@ -113,7 +113,7 @@ class WorkoutSummaryView extends StatelessWidget {
                         FilledButton(
                           key: const Key('new_workout'),
                           onPressed: onNewWorkout,
-                          child: const Text('START NEW WORKOUT'),
+                          child: const Text('START NEW SESSION'),
                         ),
                         const SizedBox(height: AppSpacing.extraLarge),
                       ],

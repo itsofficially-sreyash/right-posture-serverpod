@@ -54,7 +54,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      find.text('Complete a workout to create movement-quality analytics.'),
+      find.text(
+        'Complete an exercise session to create movement-quality analytics.',
+      ),
       findsOneWidget,
     );
     expect(find.byType(LineChart), findsNothing);

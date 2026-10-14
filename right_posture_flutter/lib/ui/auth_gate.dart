@@ -144,8 +144,8 @@ class _SignInPageState extends State<SignInPage> {
                   ),
                   const SizedBox(height: AppSpacing.small),
                   Text(
-                    'Sign in to back up your workout summaries and see '
-                    'progress across devices. Camera frames and pose data '
+                    'Sign in to back up your exercise sessions and share '
+                    'progress with your physiotherapist. Camera frames and pose data '
                     'never leave your phone.',
                     style: textTheme.bodyMedium,
                     textAlign: TextAlign.center,
@@ -269,13 +269,13 @@ class SignedOutCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Training offline',
+              'Using offline mode',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.small),
             Text(
-              'Workouts are saved on this phone only. Sign in to back them '
-              'up and get a server-computed progress report.',
+              'Sessions are saved on this phone only. Sign in to back them '
+              'up, get a server-computed progress report and share it with your physio.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: AppSpacing.medium),

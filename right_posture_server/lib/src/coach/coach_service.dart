@@ -29,7 +29,7 @@ abstract final class CoachService {
   static String normalizeCode(String code) =>
       code.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
-  /// Public URL of the coach page for [code], on the web server.
+  /// Public URL of the physio page for [code], on the web server.
   static String shareUrl(Session session, String code) {
     final web = session.serverpod.config.webServer;
     if (web == null) return code;
@@ -40,7 +40,7 @@ abstract final class CoachService {
       scheme: web.publicScheme,
       host: web.publicHost,
       port: defaultPort ? null : web.publicPort,
-      path: '/coach/$code',
+      path: '/physio/$code',
     ).toString();
   }
 

@@ -502,7 +502,7 @@ class CameraSessionTopBar extends StatelessWidget {
         children: [
           _CameraActionButton(
             key: const Key('close_camera_session'),
-            tooltip: 'Close workout',
+            tooltip: 'Close session',
             icon: Icons.close,
             onPressed: onClose,
           ),

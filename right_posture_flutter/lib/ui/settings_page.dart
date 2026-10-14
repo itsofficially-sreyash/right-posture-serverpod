@@ -16,7 +16,7 @@ class SettingsPage extends ConsumerWidget {
     final preferences = ref.watch(settingsControllerProvider);
     final controller = ref.read(settingsControllerProvider.notifier);
     return Scaffold(
-      appBar: AppBar(title: const Text('Coaching settings')),
+      appBar: AppBar(title: const Text('Guidance settings')),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -26,16 +26,16 @@ class SettingsPage extends ConsumerWidget {
               children: [
                 SwitchListTile(
                   key: const Key('tts_setting'),
-                  title: const Text('Voice coaching'),
+                  title: const Text('Voice guidance'),
                   subtitle: const Text(
-                    'Speak guided and checkpoint coaching. Requires internet.',
+                    'Speak guided and checkpoint feedback. Requires internet.',
                   ),
                   value: preferences.ttsEnabled,
                   onChanged: controller.setTtsEnabled,
                 ),
                 SwitchListTile(
                   key: const Key('haptics_setting'),
-                  title: const Text('Haptic coaching'),
+                  title: const Text('Haptic guidance'),
                   subtitle: const Text('Vibrate once for each degraded rep.'),
                   value: preferences.hapticsEnabled,
                   onChanged: controller.setHapticsEnabled,
@@ -55,7 +55,7 @@ class SettingsPage extends ConsumerWidget {
                     leading: const Icon(Icons.cloud_outlined),
                     title: const Text('Account & cloud backup'),
                     subtitle: const Text(
-                      'Sync workout summaries and view your server progress '
+                      'Sync session summaries and view your server progress '
                       'report.',
                     ),
                     trailing: const Icon(Icons.chevron_right),

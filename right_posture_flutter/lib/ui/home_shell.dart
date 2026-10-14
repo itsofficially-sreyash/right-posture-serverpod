@@ -135,9 +135,9 @@ class _HomeNavigationBar extends StatelessWidget {
     final coachIcon = unreadNotes > 0
         ? Badge(
             label: Text('$unreadNotes'),
-            child: const Icon(Icons.sports_outlined),
+            child: const Icon(Icons.medical_services_outlined),
           )
-        : const Icon(Icons.sports_outlined);
+        : const Icon(Icons.medical_services_outlined);
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: AppColors.surface,
@@ -179,8 +179,8 @@ class _HomeNavigationBar extends StatelessWidget {
             const NavigationDestination(
               icon: Icon(Icons.fitness_center_outlined),
               selectedIcon: Icon(Icons.fitness_center),
-              label: 'Workout',
-              tooltip: 'Choose an exercise',
+              label: 'Exercises',
+              tooltip: 'Your prescribed exercises',
             ),
             const NavigationDestination(
               icon: Icon(Icons.insights_outlined),
@@ -190,11 +190,11 @@ class _HomeNavigationBar extends StatelessWidget {
             ),
             NavigationDestination(
               icon: coachIcon,
-              selectedIcon: const Icon(Icons.sports),
-              label: 'Coach',
+              selectedIcon: const Icon(Icons.medical_services),
+              label: 'Physio',
               tooltip: unreadNotes > 0
-                  ? '$unreadNotes new coach note(s)'
-                  : 'Share with your coach',
+                  ? '$unreadNotes new physio note(s)'
+                  : 'Share progress with your physio',
             ),
             const NavigationDestination(
               icon: Icon(Icons.person_outline),

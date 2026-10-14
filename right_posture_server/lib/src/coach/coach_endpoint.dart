@@ -14,7 +14,7 @@ class CoachEndpoint extends Endpoint {
     final userId = session.authenticated!.authUserId;
     final name = label.trim();
     if (name.isEmpty || name.length > CoachService.maxLabelLength) {
-      throw ArgumentError.value(label, 'label', 'Invalid coach name');
+      throw ArgumentError.value(label, 'label', 'Invalid physio name');
     }
     final active = await CoachShare.db.count(
       session,

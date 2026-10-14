@@ -1075,7 +1075,9 @@ class _EmptyAnalytics extends StatelessWidget {
   Widget build(BuildContext context) => const Center(
     child: Padding(
       padding: EdgeInsets.all(AppSpacing.large),
-      child: Text('Complete a workout to create movement-quality analytics.'),
+      child: Text(
+        'Complete an exercise session to create movement-quality analytics.',
+      ),
     ),
   );
 }

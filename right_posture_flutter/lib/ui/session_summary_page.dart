@@ -231,7 +231,7 @@ class SessionSummaryView extends StatelessWidget {
                       OutlinedButton(
                         key: const Key('finish_workout'),
                         onPressed: onFinishWorkout ?? onRestart,
-                        child: const Text('FINISH WORKOUT'),
+                        child: const Text('FINISH SESSION'),
                       ),
                       const SizedBox(height: AppSpacing.medium),
                     ],

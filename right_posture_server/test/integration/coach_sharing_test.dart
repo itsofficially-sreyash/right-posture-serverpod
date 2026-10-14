@@ -29,7 +29,7 @@ void main() {
         );
         final share = await endpoints.coach.createShare(athlete, 'Coach Priya');
         expect(share.code, hasLength(8));
-        expect(share.url, endsWith('/coach/${share.code}'));
+        expect(share.url, endsWith('/physio/${share.code}'));
 
         final view = await endpoints.coachView.view(
           coach,

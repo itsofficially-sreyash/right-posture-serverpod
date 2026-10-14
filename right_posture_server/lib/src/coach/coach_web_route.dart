@@ -5,8 +5,8 @@ import 'package:serverpod/serverpod.dart';
 import '../generated/protocol.dart';
 import 'coach_service.dart';
 
-/// `GET /coach/:code` renders an athlete's shared progress for a coach in any
-/// browser. `POST /coach/:code` stores the coach's note and redirects back.
+/// `GET /coach/:code` renders an patient's shared progress for a coach in any
+/// browser. `POST` stores the physio's note and redirects back.
 class CoachWebRoute extends Route {
   CoachWebRoute() : super(methods: {Method.get, Method.post});
 
@@ -36,7 +36,7 @@ class CoachWebRoute extends Route {
         saved = false;
       }
       return Response.seeOther(
-        Uri.parse('/coach/${share.code}?note=${saved ? 'sent' : 'error'}'),
+        Uri.parse('/physio/${share.code}?note=${saved ? 'sent' : 'error'}'),
       );
     }
 
@@ -106,8 +106,8 @@ String _date(DateTime value, int offsetMinutes) {
 
 const _unavailable = '''
 <section class="card"><h1>This link is not available</h1>
-<p class="muted">It may have been revoked by the athlete. Ask them for a new
-coach link from the Right Posture app.</p></section>''';
+<p class="muted">It may have been revoked by the patient. Ask them for a new
+physio link from the Right Posture app.</p></section>''';
 
 String _body(SharedProgress p, String code, int offset, String? noteStatus) {
   final r = p.report;
@@ -117,11 +117,11 @@ String _body(SharedProgress p, String code, int offset, String? noteStatus) {
     ..write('<h1>${_esc.convert(p.label)}</h1>')
     ..write(
       '<p class="muted">Computed by Serverpod from every synced '
-      'workout. Video and pose data never leave the athlete&rsquo;s '
+      'exercise session. Video and pose data never leave the patient&rsquo;s '
       'phone.</p></header>',
     )
     ..write('<section class="stats">')
-    ..write(_stat('Workouts', '${r.workoutCount}'))
+    ..write(_stat('Sessions', '${r.workoutCount}'))
     ..write(_stat('Sets', '${r.setCount}'))
     ..write(_stat('Reps', '${r.totalReps}'))
     ..write(_stat('Day streak', '${r.streakDays}'))
@@ -130,7 +130,7 @@ String _body(SharedProgress p, String code, int offset, String? noteStatus) {
 
   if (r.exercises.isEmpty) {
     b.write(
-      '<section class="card"><p class="muted">No workouts synced '
+      '<section class="card"><p class="muted">No sessions synced '
       'yet.</p></section>',
     );
   }
@@ -179,7 +179,7 @@ String _body(SharedProgress p, String code, int offset, String? noteStatus) {
 
   if (p.recentWorkouts.isNotEmpty) {
     b.write(
-      '<section class="card"><h2>Recent workouts</h2><table>'
+      '<section class="card"><h2>Recent sessions</h2><table>'
       '<tr><th>When</th><th>Exercises</th><th>Reps</th><th>Form</th></tr>',
     );
     for (final w in p.recentWorkouts) {
@@ -196,7 +196,7 @@ String _body(SharedProgress p, String code, int offset, String? noteStatus) {
 
   b.write('<section class="card"><h2>Leave feedback</h2>');
   if (noteStatus == 'sent') {
-    b.write('<p class="ok">Sent. The athlete will see it in the app.</p>');
+    b.write('<p class="ok">Sent. The patient will see it in the app.</p>');
   } else if (noteStatus == 'error') {
     b.write(
       '<p class="warn-text">Could not send. Check your name and '
@@ -204,18 +204,18 @@ String _body(SharedProgress p, String code, int offset, String? noteStatus) {
     );
   }
   b
-    ..write('<form method="post" action="/coach/$code">')
+    ..write('<form method="post" action="/physio/$code">')
     ..write(
       '<label>Your name<input name="name" maxlength="'
       '${CoachService.maxAuthorLength}" required></label>',
     )
     ..write(
       '<label>Message<textarea name="message" rows="4" maxlength="'
-      '${CoachService.maxNoteLength}" required placeholder="e.g. Great '
-      'depth on Tuesday. Slow the lowering phase next session."></textarea>'
+      '${CoachService.maxNoteLength}" required placeholder="e.g. Good knee '
+      'control this week. Add 2 reps per set next week."></textarea>'
       '</label>',
     )
-    ..write('<button type="submit">Send to athlete</button></form>');
+    ..write('<button type="submit">Send to patient</button></form>');
   if (p.notes.isNotEmpty) {
     b.write('<h3>Previous notes</h3>');
     for (final n in p.notes) {
@@ -228,7 +228,7 @@ String _body(SharedProgress p, String code, int offset, String? noteStatus) {
   }
   b.write(
     '</section><footer class="muted">Built with Serverpod · Right '
-    'Posture is a form coach, not a medical device.</footer>',
+    'Posture supports home exercise programmes and does not replace your physiotherapist.</footer>',
   );
   return b.toString();
 }

@@ -407,8 +407,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Voice coaching'), findsOneWidget);
-    expect(find.text('Haptic coaching'), findsOneWidget);
+    expect(find.text('Voice guidance'), findsOneWidget);
+    expect(find.text('Haptic guidance'), findsOneWidget);
     expect(find.text('Sound cues'), findsOneWidget);
     await tester.tap(find.byKey(const Key('tts_setting')));
     await tester.tap(find.byKey(const Key('haptics_setting')));
@@ -443,8 +443,8 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
-    expect(find.text('Voice coaching'), findsOneWidget);
-    expect(find.text('Haptic coaching'), findsOneWidget);
+    expect(find.text('Voice guidance'), findsOneWidget);
+    expect(find.text('Haptic guidance'), findsOneWidget);
   });
 
   testWidgets('live HUD replaces stale verdict when tracking is lost', (

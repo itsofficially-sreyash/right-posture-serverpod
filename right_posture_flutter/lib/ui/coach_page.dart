@@ -10,8 +10,8 @@ import 'app_theme.dart';
 import 'auth_gate.dart';
 import 'progress_report_view.dart';
 
-/// Coach sharing: send a coach a live progress link, read their feedback,
-/// or open someone else's code when you are the coach.
+/// Physio sharing: send your physiotherapist a live progress link, read their
+/// feedback, or open a patient's code when you are the physio.
 class CoachPage extends StatefulWidget {
   const CoachPage({super.key, this.onNotesRead});
 
@@ -139,7 +139,7 @@ class _CoachPageState extends State<CoachPage> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Coach')),
+      appBar: AppBar(title: const Text('Physio')),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -154,12 +154,15 @@ class _CoachPageState extends State<CoachPage> {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.medium),
                 children: [
-                  Text('Share with your coach', style: textTheme.titleLarge),
+                  Text(
+                    'Share with your physiotherapist',
+                    style: textTheme.titleLarge,
+                  ),
                   const SizedBox(height: AppSpacing.base),
                   Text(
-                    'Create a private link. Your coach opens it in any '
-                    'browser to see your live progress report and recent '
-                    'workouts, and can send you feedback. No video or pose '
+                    'Create a private link. Your physio opens it in any '
+                    'browser to check how your prescribed exercises are '
+                    'going and can send you feedback. No video or pose '
                     'data is shared.',
                     style: textTheme.bodyMedium,
                   ),
@@ -203,10 +206,13 @@ class _CoachPageState extends State<CoachPage> {
                       },
                     ),
                   const SizedBox(height: AppSpacing.extraLarge),
-                  Text('Are you a coach?', style: textTheme.titleLarge),
+                  Text(
+                    'Are you a physiotherapist?',
+                    style: textTheme.titleLarge,
+                  ),
                   const SizedBox(height: AppSpacing.base),
                   Text(
-                    'Enter the 8-character code from your athlete\'s link to '
+                    'Enter the 8-character code from your patient\'s link to '
                     'review their progress here and send feedback.',
                     style: textTheme.bodyMedium,
                   ),
@@ -221,7 +227,7 @@ class _CoachPageState extends State<CoachPage> {
                           textInputAction: TextInputAction.go,
                           onSubmitted: (_) => _openCode(),
                           decoration: const InputDecoration(
-                            labelText: 'Athlete code',
+                            labelText: 'Patient code',
                             hintText: 'e.g. 5ZXMYDEF',
                             border: OutlineInputBorder(),
                           ),
@@ -268,7 +274,7 @@ class _ShareSection extends StatelessWidget {
           key: const Key('create_coach_link'),
           onPressed: onCreate,
           icon: const Icon(Icons.add_link),
-          label: const Text('Create coach link'),
+          label: const Text('Create physio link'),
         ),
         const SizedBox(height: AppSpacing.medium),
         for (final share in data.shares) ...[
@@ -280,12 +286,12 @@ class _ShareSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.small),
         ],
         const SizedBox(height: AppSpacing.large),
-        Text('Coach feedback', style: textTheme.titleLarge),
+        Text('Physio feedback', style: textTheme.titleLarge),
         const SizedBox(height: AppSpacing.small),
         if (data.notes.isEmpty)
           const InfoCard(
             icon: Icons.forum_outlined,
-            text: 'Notes your coach sends from the shared page appear here.',
+            text: 'Notes your physio sends from the shared page appear here.',
           )
         else
           for (final note in data.notes) ...[
@@ -320,7 +326,7 @@ class _ShareCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.sports, color: AppColors.lime),
+                const Icon(Icons.medical_services, color: AppColors.lime),
                 const SizedBox(width: AppSpacing.small),
                 Expanded(child: Text(share.label, style: textTheme.titleLarge)),
                 if (share.unreadNoteCount > 0)
@@ -423,7 +429,7 @@ class _CoachNameDialogState extends State<_CoachNameDialog> {
         autofocus: true,
         maxLength: 60,
         textCapitalization: TextCapitalization.words,
-        decoration: const InputDecoration(hintText: 'e.g. Coach Priya'),
+        decoration: const InputDecoration(hintText: 'e.g. Dr. Priya (physio)'),
         onSubmitted: (value) => Navigator.pop(context, value),
       ),
       actions: [
@@ -441,7 +447,7 @@ class _CoachNameDialogState extends State<_CoachNameDialog> {
   }
 }
 
-/// A coach's in-app view of an athlete's shared progress, with feedback.
+/// A physio's in-app view of a patient's shared progress, with feedback.
 class SharedProgressPage extends StatefulWidget {
   const SharedProgressPage({super.key, required this.code});
 
@@ -482,7 +488,7 @@ class _SharedProgressPageState extends State<SharedProgressPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            sent ? 'Feedback sent to your athlete.' : 'This link has ended.',
+            sent ? 'Feedback sent to your patient.' : 'This link has ended.',
           ),
         ),
       );
@@ -504,7 +510,7 @@ class _SharedProgressPageState extends State<SharedProgressPage> {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Athlete progress')),
+      appBar: AppBar(title: const Text('Patient progress')),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -524,8 +530,8 @@ class _SharedProgressPageState extends State<SharedProgressPage> {
                         icon: Icons.link_off,
                         text: snapshot.hasError
                             ? 'The server is unreachable. Try again later.'
-                            : 'This code is not active. Ask your athlete '
-                                  'for a new coach link.',
+                            : 'This code is not active. Ask your patient '
+                                  'for a new physio link.',
                       ),
                     ],
                   );
@@ -541,7 +547,7 @@ class _SharedProgressPageState extends State<SharedProgressPage> {
                     ProgressReportView(report: view.report),
                     if (view.recentWorkouts.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.large),
-                      Text('Recent workouts', style: textTheme.titleLarge),
+                      Text('Recent sessions', style: textTheme.titleLarge),
                       const SizedBox(height: AppSpacing.small),
                       for (final workout in view.recentWorkouts)
                         ListTile(
@@ -579,7 +585,8 @@ class _SharedProgressPageState extends State<SharedProgressPage> {
                       maxLines: 6,
                       decoration: const InputDecoration(
                         labelText: 'Message',
-                        hintText: 'e.g. Slow the lowering phase next session.',
+                        hintText:
+                            'e.g. Good control. Add 2 reps per set next week.',
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -587,7 +594,7 @@ class _SharedProgressPageState extends State<SharedProgressPage> {
                     FilledButton.icon(
                       onPressed: _sending ? null : _send,
                       icon: const Icon(Icons.send),
-                      label: const Text('Send to athlete'),
+                      label: const Text('Send to patient'),
                     ),
                     if (view.notes.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.large),

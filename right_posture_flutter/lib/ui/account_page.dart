@@ -81,8 +81,8 @@ class _AccountPageState extends ConsumerState<AccountPage> {
       builder: (context) => AlertDialog(
         title: const Text('Delete cloud backup?'),
         content: const Text(
-          'Removes every workout summary stored on the server for this '
-          'account. Workouts on this phone are kept.',
+          'Removes every session summary stored on the server for this '
+          'account. Sessions on this phone are kept.',
         ),
         actions: [
           TextButton(
@@ -134,7 +134,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                     child: ListTile(
                       key: const Key('profile_coaching_settings'),
                       leading: const Icon(Icons.tune, color: AppColors.lime),
-                      title: const Text('Coaching settings'),
+                      title: const Text('Guidance settings'),
                       subtitle: const Text('Voice, haptic and sound cues'),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => Navigator.of(context).push(
@@ -165,7 +165,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                           return const InfoCard(
                             icon: Icons.cloud_off,
                             text:
-                                'The server is unreachable. Workouts stay on '
+                                'The server is unreachable. Sessions stay on '
                                 'this phone and upload when you are back '
                                 'online.',
                           );
@@ -218,7 +218,7 @@ class _SyncCard extends StatelessWidget {
       CloudSyncPhase.offline => (
         Icons.cloud_off,
         AppColors.warning,
-        '${state.pending ?? 0} workout(s) waiting to upload',
+        '${state.pending ?? 0} session(s) waiting to upload',
       ),
       _ => (Icons.cloud_outlined, AppColors.textMuted, 'Ready to sync'),
     };
@@ -296,7 +296,7 @@ class _ReportView extends StatelessWidget {
         Text('Cloud progress report', style: textTheme.titleLarge),
         const SizedBox(height: AppSpacing.base),
         Text(
-          'Computed on the server from every synced workout.',
+          'Computed on the server from every synced session.',
           style: textTheme.bodyMedium,
         ),
         const SizedBox(height: AppSpacing.medium),
@@ -304,7 +304,7 @@ class _ReportView extends StatelessWidget {
           spacing: AppSpacing.small,
           runSpacing: AppSpacing.small,
           children: [
-            StatTile(label: 'Workouts', value: '${status.workoutCount}'),
+            StatTile(label: 'Sessions', value: '${status.workoutCount}'),
             StatTile(label: 'Sets', value: '${status.setCount}'),
             StatTile(label: 'Reps', value: '${status.totalReps}'),
             StatTile(label: 'Day streak', value: '${report.streakDays}'),
@@ -318,7 +318,7 @@ class _ReportView extends StatelessWidget {
         if (report.exercises.isEmpty)
           const InfoCard(
             icon: Icons.insights,
-            text: 'Finish a workout to see your first cloud report.',
+            text: 'Finish an exercise session to see your first cloud report.',
           )
         else
           for (final exercise in report.exercises) ...[
