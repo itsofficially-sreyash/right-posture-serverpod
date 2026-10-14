@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'client.dart';
 import 'cloud_sync.dart';
+import 'demo_seed.dart';
 import 'history_storage.dart';
 import 'settings_controller.dart';
 import 'ui/app_theme.dart';
@@ -26,6 +27,7 @@ Future<void> main() async {
     cloud: () => cloud,
   );
   cloud = CloudSync(local: history, api: ServerpodCloudApi(client));
+  if (demoSeedEnabled) await seedDemoHistory(history);
   runApp(
     ProviderScope(
       overrides: [

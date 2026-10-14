@@ -16,6 +16,45 @@ import 'history_storage.dart';
 String workoutClientId(HistoryWorkout workout) =>
     workout.completedAt.toUtc().toIso8601String();
 
+/// Workout JSON for the server. Local history stores phone-local times
+/// without an offset, so timestamps are sent as UTC to keep the server's
+/// days, streaks and coach page correct in every timezone.
+String encodeWorkoutPayload(HistoryWorkout workout) =>
+    jsonEncode(_mapTimes(workout.toJson(), (t) => t.toUtc()));
+
+/// Parses a server payload back into phone-local times.
+HistoryWorkout? decodeWorkoutPayload(String payload) {
+  try {
+    final json = jsonDecode(payload) as Map<String, Object?>;
+    return HistoryWorkout.tryParse(_mapTimes(json, (t) => t.toLocal()));
+  } catch (_) {
+    return null;
+  }
+}
+
+Map<String, Object?> _mapTimes(
+  Map<String, Object?> json,
+  DateTime Function(DateTime) convert,
+) {
+  String? convertValue(Object? value) {
+    if (value is! String) return null;
+    final parsed = DateTime.tryParse(value);
+    return parsed == null ? value : convert(parsed).toIso8601String();
+  }
+
+  return {
+    ...json,
+    'completedAt': convertValue(json['completedAt']),
+    'sets': [
+      for (final set in (json['sets'] as List<Object?>? ?? const []))
+        if (set is Map<String, Object?>)
+          {...set, 'completedAt': convertValue(set['completedAt'])}
+        else
+          set,
+    ],
+  };
+}
+
 /// The Serverpod calls cloud sync needs; a seam for tests.
 abstract interface class CloudApi {
   bool get isSignedIn;
@@ -118,7 +157,7 @@ class CloudSync extends ValueNotifier<CloudSyncState> {
       for (final workout in await _local.load()) {
         final id = workoutClientId(workout);
         if (uploaded.contains(id)) continue;
-        await _api.upload(id, jsonEncode(workout.toJson()));
+        await _api.upload(id, encodeWorkoutPayload(workout));
         uploaded.add(id);
       }
       final remote = await _api.list();
@@ -179,13 +218,8 @@ class CloudSync extends ValueNotifier<CloudSyncState> {
     } catch (_) {}
   }
 
-  static HistoryWorkout? _parse(String payload) {
-    try {
-      return HistoryWorkout.tryParse(jsonDecode(payload));
-    } catch (_) {
-      return null;
-    }
-  }
+  static HistoryWorkout? _parse(String payload) =>
+      decodeWorkoutPayload(payload);
 }
 
 /// [HistoryStorage] that triggers a cloud sync after every local write.

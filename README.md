@@ -2,9 +2,16 @@
 
 ### A private, real-time movement coach for your phone, with a Serverpod backend for workout history and progress.
 
-<p align="center">
-  <img src="docs/screenshot.png" alt="Right Posture mobile app" width="380">
-</p>
+<table align="center">
+  <tr>
+    <td align="center"><img src="docs/screenshots/01-workout.png" alt="Workout tab: choose squat, bicep curl or shoulder press" width="180"><br><sub><b>Workout</b><br>Pick an exercise</sub></td>
+    <td align="center"><img src="docs/screenshots/02-progress.png" alt="Progress tab: weekly sets, form score, streak" width="180"><br><sub><b>Progress</b><br>Movement-quality analytics</sub></td>
+    <td align="center"><img src="docs/screenshots/03-coach.png" alt="Coach tab: share link and coach feedback" width="180"><br><sub><b>Coach</b><br>Share a link, get feedback</sub></td>
+    <td align="center"><img src="docs/screenshots/04-profile.png" alt="Profile tab: cloud backup and server progress report" width="180"><br><sub><b>Profile</b><br>Report computed by Serverpod</sub></td>
+    <td align="center"><img src="docs/screenshots/05-coach-web.png" alt="Coach web page served by Serverpod" width="180"><br><sub><b>Coach's browser</b><br>Served by Serverpod</sub></td>
+  </tr>
+</table>
+<p align="center"><sub>Screenshots use fictional demo workouts.</sub></p>
 
 Right Posture uses only the phone camera to coach exercise form. It turns 33 body landmarks into joint angles, rep phases, form evidence and live cues. It also catches form slowly getting worse as you tire, not just reps that are plainly wrong.
 

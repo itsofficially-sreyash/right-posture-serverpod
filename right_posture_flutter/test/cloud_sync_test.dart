@@ -96,6 +96,22 @@ void main() {
     expect(api.stored, hasLength(2));
   });
 
+  test('payload timestamps are UTC and restore to local time', () {
+    final workout = HistoryWorkout.fromCompletedSets(
+      sampleWorkout(day: 2).completedSets,
+    );
+    final payload = encodeWorkoutPayload(workout);
+    final json = jsonDecode(payload) as Map<String, Object?>;
+    expect(json['completedAt'] as String, endsWith('Z'));
+    final sets = json['sets'] as List<Object?>;
+    expect((sets.single as Map)['completedAt'] as String, endsWith('Z'));
+
+    final restored = decodeWorkoutPayload(payload)!;
+    expect(restored.completedAt.isUtc, isFalse);
+    expect(restored.completedAt, workout.completedAt);
+    expect(restored.sets.single.completedAt, workout.sets.single.completedAt);
+  });
+
   test('signed-out users never call the server', () async {
     final api = FakeCloudApi()..signedIn = false;
     final local = HistoryStorage(MemoryHistoryBackend());
