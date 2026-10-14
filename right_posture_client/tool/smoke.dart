@@ -1,5 +1,6 @@
 /// End-to-end smoke test for a running Right Posture server:
-/// guest sign-in, two uploads, a duplicate upload, status and progress report.
+/// guest sign-in, two uploads, a duplicate upload, status, progress report
+/// and a coach share link with a note.
 ///
 /// Usage: dart run tool/smoke.dart [server-url]
 import 'dart:convert';
@@ -52,6 +53,14 @@ Future<void> main(List<String> args) async {
     'report streak=${r.streakDays} exercises=${r.exercises.map((e) => '${e.exercise}:${e.averageFormScore}').join(',')}',
   );
   print('insights ${r.exercises.first.insights}');
+  final share = await client.coach.createShare('Coach Smoke');
+  print('coach link ${share.url}');
+  final note = await client.coachView.leaveNote(
+    share.code,
+    'Smoke',
+    'Looks good.',
+  );
+  print('coach note $note, notes=${(await client.coach.notes()).length}');
   client.close();
 }
 

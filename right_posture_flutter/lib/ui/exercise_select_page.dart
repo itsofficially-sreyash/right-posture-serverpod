@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../domain/exercise.dart';
 import '../history_storage.dart';
 import '../session_controller.dart';
-import 'analytics_page.dart';
 import 'app_theme.dart';
 import 'guided_demo_page.dart';
 import 'settings_page.dart';
@@ -32,7 +31,10 @@ Future<void> openExercise(
 }
 
 class ExerciseSelectPage extends ConsumerWidget {
-  const ExerciseSelectPage({super.key});
+  const ExerciseSelectPage({super.key, this.onOpenProfile});
+
+  /// Opens the profile tab when hosted in the home shell.
+  final VoidCallback? onOpenProfile;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,17 +53,12 @@ class ExerciseSelectPage extends ConsumerWidget {
         actions: [
           IconButton(
             key: const Key('open_profile'),
-            tooltip: 'Coaching settings',
-            onPressed: () => _openSettings(context),
+            tooltip: onOpenProfile == null ? 'Coaching settings' : 'Profile',
+            onPressed: onOpenProfile ?? () => _openSettings(context),
             icon: const Icon(Icons.account_circle_outlined),
           ),
           const SizedBox(width: AppSpacing.small),
         ],
-      ),
-      bottomNavigationBar: _BottomNavigation(
-        onWorkout: () {},
-        onAnalytics: () => _openAnalytics(context),
-        onSettings: () => _openSettings(context),
       ),
       body: SafeArea(
         top: false,
@@ -103,7 +100,7 @@ class ExerciseSelectPage extends ConsumerWidget {
                               key: const Key('open_settings'),
                               onPressed: () => _openSettings(context),
                               icon: const Icon(Icons.tune),
-                              label: const Text('COACH SETTINGS'),
+                              label: const Text('CUE SETTINGS'),
                             ),
                           ],
                         ),
@@ -119,12 +116,6 @@ class ExerciseSelectPage extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  void _openAnalytics(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const AnalyticsPage()));
   }
 
   void _openSettings(BuildContext context) {
@@ -151,16 +142,25 @@ class _ExerciseGrid extends StatelessWidget {
         status: 'CAMERA GUIDED',
         accent: AppColors.success,
       ),
-      if (kDebugMode) ...[
-        const _ExerciseCardData(
-          id: ExerciseId.bicepCurl,
-          keyName: 'select_bicep_curl',
-          title: 'Bicep Curl',
-          description: 'Elbow control and curl alignment',
-          icon: Icons.fitness_center,
-          status: 'TUNING PREVIEW',
-          accent: AppColors.warning,
-        ),
+      const _ExerciseCardData(
+        id: ExerciseId.bicepCurl,
+        keyName: 'select_bicep_curl',
+        title: 'Bicep Curl',
+        description: 'Elbow control and curl alignment',
+        icon: Icons.fitness_center,
+        status: 'CAMERA GUIDED',
+        accent: AppColors.warning,
+      ),
+      const _ExerciseCardData(
+        id: ExerciseId.shoulderPress,
+        keyName: 'select_shoulder_press',
+        title: 'Shoulder Press',
+        description: 'Shoulder stability and vertical path',
+        icon: Icons.sports_gymnastics,
+        status: 'CAMERA GUIDED',
+        accent: AppColors.cyan,
+      ),
+      if (kDebugMode)
         const _ExerciseCardData(
           id: ExerciseId.lateralRaise,
           keyName: 'select_lateral_raise',
@@ -168,18 +168,8 @@ class _ExerciseGrid extends StatelessWidget {
           description: 'Shoulder symmetry and movement control',
           icon: Icons.accessibility_new,
           status: 'TUNING PREVIEW',
-          accent: AppColors.cyan,
-        ),
-        const _ExerciseCardData(
-          id: ExerciseId.shoulderPress,
-          keyName: 'select_shoulder_press',
-          title: 'Shoulder Press',
-          description: 'Shoulder stability and vertical path',
-          icon: Icons.fitness_center,
-          status: 'TUNING PREVIEW',
           accent: AppColors.success,
         ),
-      ],
     ];
 
     return LayoutBuilder(
@@ -361,45 +351,6 @@ class _StatusChip extends StatelessWidget {
           letterSpacing: 1.1,
         ),
       ),
-    );
-  }
-}
-
-class _BottomNavigation extends StatelessWidget {
-  const _BottomNavigation({
-    required this.onWorkout,
-    required this.onAnalytics,
-    required this.onSettings,
-  });
-
-  final VoidCallback onWorkout;
-  final VoidCallback onAnalytics;
-  final VoidCallback onSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    return NavigationBar(
-      selectedIndex: 0,
-      onDestinationSelected: (index) => switch (index) {
-        0 => onWorkout(),
-        1 => onAnalytics(),
-        _ => onSettings(),
-      },
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.fitness_center_outlined),
-          selectedIcon: Icon(Icons.fitness_center),
-          label: 'Workout',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.query_stats),
-          label: 'Analytics',
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.settings_outlined),
-          label: 'Settings',
-        ),
-      ],
     );
   }
 }

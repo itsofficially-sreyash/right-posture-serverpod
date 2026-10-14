@@ -12,6 +12,12 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _ida;
 import 'package:http/http.dart' as _i85jenna;
+import 'package:right_posture_client/src/protocol/coach/coach_note_info.dart'
+    as _i4e57982;
+import 'package:right_posture_client/src/protocol/coach/coach_share_info.dart'
+    as _iv4v21xh;
+import 'package:right_posture_client/src/protocol/coach/shared_progress.dart'
+    as _iffnctep;
 import 'package:right_posture_client/src/protocol/progress/progress_report.dart'
     as _i7mzik6b;
 import 'package:right_posture_client/src/protocol/workouts/sync_status.dart'
@@ -272,6 +278,91 @@ class EndpointJwtRefresh extends _iacc.EndpointRefreshJwtTokens {
       );
 }
 
+/// Athlete side of coach sharing: manage share links and read coach notes.
+/// {@category Endpoint}
+class EndpointCoach extends _isc.EndpointRef {
+  EndpointCoach(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'coach';
+
+  /// Creates a share link for a coach named [label].
+  _ida.Future<_iv4v21xh.CoachShareInfo> createShare(String label) =>
+      caller.callServerEndpoint<_iv4v21xh.CoachShareInfo>(
+        'coach',
+        'createShare',
+        {'label': label},
+      );
+
+  /// The user's active share links, newest first.
+  _ida.Future<List<_iv4v21xh.CoachShareInfo>> listShares() =>
+      caller.callServerEndpoint<List<_iv4v21xh.CoachShareInfo>>(
+        'coach',
+        'listShares',
+        {},
+      );
+
+  /// Stops a share link from working. Notes stay readable in the app.
+  _ida.Future<bool> revokeShare(String code) => caller.callServerEndpoint<bool>(
+    'coach',
+    'revokeShare',
+    {'code': code},
+  );
+
+  /// Notes coaches left on any of the user's links, newest first.
+  _ida.Future<List<_i4e57982.CoachNoteInfo>> notes() =>
+      caller.callServerEndpoint<List<_i4e57982.CoachNoteInfo>>(
+        'coach',
+        'notes',
+        {},
+      );
+
+  /// Marks every note on the user's links as read. Returns how many changed.
+  _ida.Future<int> markNotesRead() => caller.callServerEndpoint<int>(
+    'coach',
+    'markNotesRead',
+    {},
+  );
+}
+
+/// Coach side: open a share code in the app and leave feedback. No account
+/// needed; the unguessable code is the credential.
+/// {@category Endpoint}
+class EndpointCoachView extends _isc.EndpointRef {
+  EndpointCoachView(_isc.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'coachView';
+
+  /// Progress shared through [code], or null if the link is unknown or revoked.
+  _ida.Future<_iffnctep.SharedProgress?> view(
+    String code,
+    int utcOffsetMinutes,
+  ) => caller.callServerEndpoint<_iffnctep.SharedProgress?>(
+    'coachView',
+    'view',
+    {
+      'code': code,
+      'utcOffsetMinutes': utcOffsetMinutes,
+    },
+  );
+
+  /// Leaves a note for the athlete. Returns false if the link is not active.
+  _ida.Future<bool> leaveNote(
+    String code,
+    String authorName,
+    String message,
+  ) => caller.callServerEndpoint<bool>(
+    'coachView',
+    'leaveNote',
+    {
+      'code': code,
+      'authorName': authorName,
+      'message': message,
+    },
+  );
+}
+
 /// Progress analytics computed on the server from every synced workout.
 /// {@category Endpoint}
 class EndpointProgress extends _isc.EndpointRef {
@@ -395,6 +486,8 @@ class Client extends _isc.ServerpodClientShared {
     anonymousIdp = EndpointAnonymousIdp(this);
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    coach = EndpointCoach(this);
+    coachView = EndpointCoachView(this);
     progress = EndpointProgress(this);
     workout = EndpointWorkout(this);
     modules = Modules(this);
@@ -405,6 +498,10 @@ class Client extends _isc.ServerpodClientShared {
   late final EndpointEmailIdp emailIdp;
 
   late final EndpointJwtRefresh jwtRefresh;
+
+  late final EndpointCoach coach;
+
+  late final EndpointCoachView coachView;
 
   late final EndpointProgress progress;
 
@@ -417,6 +514,8 @@ class Client extends _isc.ServerpodClientShared {
     'anonymousIdp': anonymousIdp,
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
+    'coach': coach,
+    'coachView': coachView,
     'progress': progress,
     'workout': workout,
   };

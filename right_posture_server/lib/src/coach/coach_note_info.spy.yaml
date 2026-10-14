@@ -1,0 +1,9 @@
+### A coach note as shown to the athlete.
+class: CoachNoteInfo
+fields:
+  id: int
+  shareLabel: String
+  authorName: String
+  message: String
+  createdAt: DateTime
+  read: bool

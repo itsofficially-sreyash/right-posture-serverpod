@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../pose_camera_page.dart';
 import '../session_controller.dart';
-import 'exercise_select_page.dart';
+import 'home_shell.dart';
 import 'session_summary_page.dart';
 import 'workout_summary_page.dart';
 
@@ -16,7 +16,7 @@ class SessionFlow extends ConsumerWidget {
       sessionControllerProvider.select((state) => state.phase),
     );
     return switch (phase) {
-      SessionPhase.idle => const ExerciseSelectPage(),
+      SessionPhase.idle => const HomeShell(),
       SessionPhase.preparing ||
       SessionPhase.countdown => const PoseCameraPage(),
       SessionPhase.tracking => const PoseCameraPage(),

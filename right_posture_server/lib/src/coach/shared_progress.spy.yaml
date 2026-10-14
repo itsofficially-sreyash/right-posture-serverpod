@@ -1,0 +1,8 @@
+### What a coach sees through a share link.
+class: SharedProgress
+fields:
+  ### The label the athlete gave this link.
+  label: String
+  report: ProgressReport
+  recentWorkouts: List<SharedWorkout>
+  notes: List<SharedNote>

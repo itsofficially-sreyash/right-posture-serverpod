@@ -6,6 +6,7 @@ import 'package:serverpod_auth_idp_server/providers/email.dart';
 import 'package:serverpod_cloud_storage/serverpod_cloud_storage.dart';
 
 import 'src/cache_busting.dart';
+import 'src/coach/coach_web_route.dart';
 import 'src/generated/serverpod.dart';
 import 'src/web/routes/app_config_route.dart';
 
@@ -44,6 +45,9 @@ void run(List<String> args) async {
     StaticRoute.withCacheBusting(cacheBustingConfig),
     cacheBustingConfig.mountPrefix,
   );
+
+  // Coach sharing page: athletes send this link to their coach.
+  pod.webServer.addRoute(CoachWebRoute(), '/coach/:code');
 
   // Setup the app config route.
   // We build this configuration based on the servers api url and serve it to

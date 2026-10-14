@@ -24,14 +24,15 @@ At-home exercise lacks feedback. People finish every scheduled rep while unknowi
 |---|---|
 | ML Kit pose detection, 33 landmarks | Email accounts and one-tap guest accounts (Serverpod auth) |
 | Confidence filtering, side locking, smoothing | Idempotent workout upload, stored once per workout |
-| Rep state machines: squat, bicep curl, lateral raise, shoulder press | Postgres tables for workouts and per-set metrics |
+| Rep state machines: squat, bicep curl, shoulder press (+ lateral raise preview) | Postgres tables for workouts and per-set metrics |
 | Two-layer evaluation: immediate faults + gradual decline from a per-set baseline | History restore on a new phone or after reinstall |
 | Live visual, voice, sound and haptic coaching | **Server-computed progress report**: streaks, weekly volume, best set, top issue, trend insights |
 | Set summary, workout comparison, local analytics | Per-user data isolation, journal-note sync, delete-my-data |
+| Coach tab: create/revoke links, read feedback, open an athlete's code | **Coach sharing**: unguessable share links, a server-rendered coach web page, coach feedback notes with read state, view counts |
 
 ### Flow
 
-**Sign in (email or guest account, or offline only)** → choose exercise → guided demo → position phone → 3-2-1 → live coaching → set summary → workout summary → **auto-sync to Serverpod** → *Settings → Account & cloud backup* for the server progress report.
+**Sign in (email or guest account, or offline only)** → **Workout** tab: choose exercise → guided demo → position phone → 3-2-1 → live coaching → set summary → workout summary → **auto-sync to Serverpod** → **Progress** tab (history and analytics) → **Coach** tab (share a live link with a coach, read their feedback) → **Profile** tab (cloud backup and the server progress report).
 
 ## Architecture
 
@@ -45,10 +46,13 @@ flowchart LR
       E <--> F[CloudSync<br/>offline queue + merge]
     end
     F -- "workout.upload / list / updateNote" --> G
-    H[Account screen] -- "progress.report" --> G
+    H[Profile / Coach tabs] -- "progress.report · coach.*" --> G
+    K[Coach's browser] -- "GET/POST /coach/:code" --> L
     subgraph Server [Serverpod 4]
       G[Endpoints<br/>requireLogin] --> I[(Postgres<br/>workout_record<br/>workout_set_record)]
       G --> J[right_posture_core<br/>same analytics code]
+      L[Web server route<br/>server-rendered coach page] --> I
+      L --> J
     end
 ```
 
@@ -71,8 +75,10 @@ right_posture_flutter/  Flutter Android app
 | `WorkoutEndpoint`: `upload` (transactional, idempotent, validated with core), `list`, `status`, `updateNote`, `deleteAll` | `right_posture_server/lib/src/workouts/workout_endpoint.dart` |
 | `ProgressEndpoint.report(utcOffsetMinutes)` → `ProgressReport` | `right_posture_server/lib/src/progress/` |
 | Email + anonymous identity providers, JWT tokens | `right_posture_server/lib/server.dart`, `lib/src/auth/` |
+| `CoachShare` / `CoachNote` tables; `CoachEndpoint` (create/list/revoke links, notes, mark read) and public `CoachViewEndpoint` (view by code, leave note) | `right_posture_server/lib/src/coach/` |
+| Server-rendered coach page on the Serverpod web server (`/coach/:code`, GET view + POST feedback form) | `right_posture_server/lib/src/coach/coach_web_route.dart` |
 | Offline-first sync client | `right_posture_flutter/lib/cloud_sync.dart` |
-| Sign-in gate and account/progress screen | `right_posture_flutter/lib/ui/auth_gate.dart`, `ui/account_page.dart` |
+| Sign-in gate, tab shell, profile and coach screens | `right_posture_flutter/lib/ui/auth_gate.dart`, `ui/home_shell.dart`, `ui/account_page.dart`, `ui/coach_page.dart` |
 
 ## Privacy by design
 
@@ -80,6 +86,7 @@ right_posture_flutter/  Flutter Android app
 |---|---|
 | Camera frames, pose landmarks, raw angle streams | **Never** |
 | Bounded workout summaries (rep counts, scores, issue labels, notes) | Only when signed in, to your own account |
+| Progress report via coach link | Only to people you give a link; revocable at any time |
 
 Users can delete their whole cloud backup from the Account screen.
 
@@ -123,7 +130,8 @@ cd right_posture_client && dart run tool/smoke.dart http://localhost:8080/
 1. Install the APK from the latest GitHub release (Android, camera permission required).
 2. Tap **Continue without account** (a guest account, no email needed) or sign up with email. Use mobile data or an open network; some corporate firewalls block new domains.
 3. Pick **Squat**, follow the setup guide, and do a short set. Then tap **End set** → **Finish workout**.
-4. Open **Settings → Account & cloud backup** to see the sync status and the **Cloud progress report** computed by Serverpod.
+4. Open the **Profile** tab to see the sync status and the **Cloud progress report** computed by Serverpod.
+5. Open the **Coach** tab → **Create coach link**, open the copied link in a browser (the coach view), and send feedback from that page. It appears in the app's Coach tab with a badge.
 
 ## Built with
 Flutter · Dart · Serverpod 4 (endpoints, ORM, migrations, auth IdP, Serverpod Cloud) · PostgreSQL · Google ML Kit Pose Detection · Riverpod · fl_chart

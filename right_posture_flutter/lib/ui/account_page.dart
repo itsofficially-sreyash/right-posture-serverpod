@@ -8,10 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../client.dart';
 import '../cloud_sync.dart';
-import '../domain/exercise.dart';
-import '../domain/exercise_registry.dart';
 import 'app_theme.dart';
 import 'auth_gate.dart';
+import 'progress_report_view.dart';
+import 'settings_page.dart';
 
 /// Account, cloud backup status and the server-computed progress report.
 class AccountPage extends ConsumerStatefulWidget {
@@ -69,7 +69,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
     if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const _SignInRoute(),
+        builder: (_) => const SignInRoute(),
       ),
     );
     _refresh();
@@ -115,7 +115,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
   Widget build(BuildContext context) {
     final cloud = ref.watch(cloudSyncProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Account & cloud')),
+      appBar: AppBar(title: const Text('Profile')),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -130,8 +130,24 @@ class _AccountPageState extends ConsumerState<AccountPage> {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.medium),
                 children: [
+                  Card(
+                    child: ListTile(
+                      key: const Key('profile_coaching_settings'),
+                      leading: const Icon(Icons.tune, color: AppColors.lime),
+                      title: const Text('Coaching settings'),
+                      subtitle: const Text('Voice, haptic and sound cues'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              const SettingsPage(showAccount: false),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.medium),
                   if (!client.auth.isAuthenticated)
-                    _SignedOutCard(onSignIn: _signIn)
+                    SignedOutCard(onSignIn: _signIn)
                   else ...[
                     ValueListenableBuilder(
                       valueListenable: cloud,
@@ -146,7 +162,7 @@ class _AccountPageState extends ConsumerState<AccountPage> {
                       future: _cloud,
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return const _InfoCard(
+                          return const InfoCard(
                             icon: Icons.cloud_off,
                             text:
                                 'The server is unreachable. Workouts stay on '
@@ -173,70 +189,6 @@ class _AccountPageState extends ConsumerState<AccountPage> {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SignInRoute extends StatefulWidget {
-  const _SignInRoute();
-
-  @override
-  State<_SignInRoute> createState() => _SignInRouteState();
-}
-
-class _SignInRouteState extends State<_SignInRoute> {
-  @override
-  void initState() {
-    super.initState();
-    client.auth.authInfoListenable.addListener(_maybeClose);
-  }
-
-  @override
-  void dispose() {
-    client.auth.authInfoListenable.removeListener(_maybeClose);
-    super.dispose();
-  }
-
-  void _maybeClose() {
-    if (client.auth.isAuthenticated && mounted) Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) => const SignInPage();
-}
-
-class _SignedOutCard extends StatelessWidget {
-  const _SignedOutCard({required this.onSignIn});
-
-  final VoidCallback onSignIn;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.medium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Training offline',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: AppSpacing.small),
-            Text(
-              'Workouts are saved on this phone only. Sign in to back them '
-              'up and get a server-computed progress report.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppSpacing.medium),
-            FilledButton(
-              key: const Key('account_sign_in'),
-              onPressed: onSignIn,
-              child: const Text('Sign in'),
-            ),
-          ],
         ),
       ),
     );
@@ -352,11 +304,11 @@ class _ReportView extends StatelessWidget {
           spacing: AppSpacing.small,
           runSpacing: AppSpacing.small,
           children: [
-            _Stat(label: 'Workouts', value: '${status.workoutCount}'),
-            _Stat(label: 'Sets', value: '${status.setCount}'),
-            _Stat(label: 'Reps', value: '${status.totalReps}'),
-            _Stat(label: 'Day streak', value: '${report.streakDays}'),
-            _Stat(
+            StatTile(label: 'Workouts', value: '${status.workoutCount}'),
+            StatTile(label: 'Sets', value: '${status.setCount}'),
+            StatTile(label: 'Reps', value: '${status.totalReps}'),
+            StatTile(label: 'Day streak', value: '${report.streakDays}'),
+            StatTile(
               label: 'Active days (28)',
               value: '${report.activeDaysLast28}',
             ),
@@ -364,13 +316,13 @@ class _ReportView extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.medium),
         if (report.exercises.isEmpty)
-          const _InfoCard(
+          const InfoCard(
             icon: Icons.insights,
             text: 'Finish a workout to see your first cloud report.',
           )
         else
           for (final exercise in report.exercises) ...[
-            _ExerciseCard(progress: exercise),
+            ExerciseProgressCard(progress: exercise),
             const SizedBox(height: AppSpacing.small),
           ],
         const SizedBox(height: AppSpacing.medium),
@@ -384,132 +336,6 @@ class _ReportView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ExerciseCard extends StatelessWidget {
-  const _ExerciseCard({required this.progress});
-
-  final ExerciseProgress progress;
-
-  String get _name {
-    final id = ExerciseId.values.where((e) => e.name == progress.exercise);
-    if (id.isEmpty) return progress.exercise;
-    try {
-      return const ExerciseRegistry().profileFor(id.first).displayName;
-    } catch (_) {
-      return progress.exercise;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    String percent(double? value) =>
-        value == null ? '—' : '${value.toStringAsFixed(0)}%';
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.medium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_name, style: textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.small),
-            Text(
-              '${progress.sets} sets · ${progress.reps} reps · '
-              'avg form ${percent(progress.averageFormScore)} · '
-              'best ${percent(progress.bestFormScore)}',
-              style: textTheme.bodyLarge,
-            ),
-            Text(
-              'This week: ${progress.weeklySets} sets, '
-              '${progress.weeklyReps} reps, form '
-              '${percent(progress.weeklyFormScore)}',
-              style: textTheme.bodyMedium,
-            ),
-            Text(
-              'Reps: ${progress.goodReps} good · ${progress.warningReps} '
-              'warning · ${progress.degradedReps} degraded',
-              style: textTheme.bodyMedium,
-            ),
-            if (progress.topIssue != null)
-              Text(
-                'Most frequent issue: ${progress.topIssue} '
-                '(${progress.topIssueCount}×)',
-                style: textTheme.bodyMedium?.copyWith(color: AppColors.warning),
-              ),
-            for (final insight in progress.insights)
-              Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.base),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.insights, size: 18, color: AppColors.lime),
-                    const SizedBox(width: AppSpacing.small),
-                    Expanded(child: Text(insight, style: textTheme.bodyMedium)),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minWidth: 96),
-      padding: const EdgeInsets.all(AppSpacing.medium),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColors.lime,
-            ),
-          ),
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ],
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.medium),
-        child: Row(
-          children: [
-            Icon(icon, color: AppColors.textMuted),
-            const SizedBox(width: AppSpacing.small),
-            Expanded(
-              child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

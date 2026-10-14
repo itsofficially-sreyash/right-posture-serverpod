@@ -81,14 +81,45 @@ class _AuthGateState extends ConsumerState<AuthGate> {
   }
 }
 
-class SignInPage extends StatelessWidget {
+class SignInPage extends StatefulWidget {
   const SignInPage({super.key, this.onContinueOffline});
 
   final VoidCallback? onContinueOffline;
 
   @override
+  State<SignInPage> createState() => _SignInPageState();
+}
+
+class _SignInPageState extends State<SignInPage> {
+  late final EmailAuthController _email = EmailAuthController(
+    client: client,
+    startScreen: EmailFlowScreen.startRegistration,
+    onError: _showError,
+  );
+
+  @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
+
+  void _showError(Object error) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Sign-in failed: $error')));
+  }
+
+  bool get _awaitingCode => switch (_email.currentScreen) {
+    EmailFlowScreen.verifyRegistration ||
+    EmailFlowScreen.verifyPasswordReset => true,
+    _ => false,
+  };
+
+  @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final onContinueOffline = widget.onContinueOffline;
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -120,15 +151,21 @@ class SignInPage extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.large),
+                  ListenableBuilder(
+                    listenable: _email,
+                    builder: (context, _) => _awaitingCode
+                        ? const _CheckSpamBanner()
+                        : const SizedBox.shrink(),
+                  ),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(AppSpacing.medium),
                       child: SignInWidget(
                         client: client,
-                        onError: (error) =>
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Sign-in failed: $error')),
-                            ),
+                        emailSignInWidget: EmailSignInWidget(
+                          controller: _email,
+                        ),
+                        onError: _showError,
                       ),
                     ),
                   ),
@@ -144,6 +181,110 @@ class SignInPage extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CheckSpamBanner extends StatelessWidget {
+  const _CheckSpamBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('check_spam_hint'),
+      margin: const EdgeInsets.only(bottom: AppSpacing.medium),
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.medium),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.mark_email_unread_outlined,
+            color: AppColors.warning,
+          ),
+          const SizedBox(width: AppSpacing.small),
+          Expanded(
+            child: Text(
+              'We emailed you a verification code. It can take a minute. '
+              "If you don't see it, check your Spam, Junk or Promotions "
+              'folder.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pushed sign-in screen that closes itself once the user is signed in.
+class SignInRoute extends StatefulWidget {
+  const SignInRoute({super.key});
+
+  @override
+  State<SignInRoute> createState() => SignInRouteState();
+}
+
+class SignInRouteState extends State<SignInRoute> {
+  @override
+  void initState() {
+    super.initState();
+    client.auth.authInfoListenable.addListener(_maybeClose);
+  }
+
+  @override
+  void dispose() {
+    client.auth.authInfoListenable.removeListener(_maybeClose);
+    super.dispose();
+  }
+
+  void _maybeClose() {
+    if (client.auth.isAuthenticated && mounted) Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) => const SignInPage();
+}
+
+/// Prompt shown on account-only screens while signed out.
+class SignedOutCard extends StatelessWidget {
+  const SignedOutCard({super.key, required this.onSignIn});
+
+  final VoidCallback onSignIn;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.medium),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Training offline',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.small),
+            Text(
+              'Workouts are saved on this phone only. Sign in to back them '
+              'up and get a server-computed progress report.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: AppSpacing.medium),
+            FilledButton(
+              key: const Key('account_sign_in'),
+              onPressed: onSignIn,
+              child: const Text('Sign in'),
+            ),
+          ],
         ),
       ),
     );

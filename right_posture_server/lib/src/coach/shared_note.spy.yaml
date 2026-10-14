@@ -1,0 +1,6 @@
+### A note visible on the shared page (to the coach who left it).
+class: SharedNote
+fields:
+  authorName: String
+  message: String
+  createdAt: DateTime

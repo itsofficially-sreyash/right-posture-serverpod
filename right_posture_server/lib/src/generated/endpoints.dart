@@ -18,6 +18,7 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import '../auth/anonymous_idp_endpoint.dart' as _in0zita6;
 import '../auth/email_idp_endpoint.dart' as _iuc1hd5t;
 import '../auth/jwt_refresh_endpoint.dart' as _inwq3ztq;
+import '../coach/coach_endpoint.dart' as _i3gqcq2l;
 import '../progress/progress_endpoint.dart' as _i88xesu5;
 import '../workouts/workout_endpoint.dart' as _izzbgaba;
 
@@ -41,6 +42,18 @@ class Endpoints extends _is.EndpointDispatch {
         ..initialize(
           server,
           'jwtRefresh',
+          null,
+        ),
+      'coach': _i3gqcq2l.CoachEndpoint()
+        ..initialize(
+          server,
+          'coach',
+          null,
+        ),
+      'coachView': _i3gqcq2l.CoachViewEndpoint()
+        ..initialize(
+          server,
+          'coachView',
           null,
         ),
       'progress': _i88xesu5.ProgressEndpoint()
@@ -285,6 +298,143 @@ class Endpoints extends _is.EndpointDispatch {
                         session,
                         refreshToken: params['refreshToken'],
                       ),
+        ),
+      },
+    );
+    connectors['coach'] = _is.EndpointConnector(
+      name: 'coach',
+      endpoint: endpoints['coach']!,
+      methodConnectors: {
+        'createShare': _is.MethodConnector(
+          name: 'createShare',
+          params: {
+            'label': _is.ParameterDescription(
+              name: 'label',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['coach'] as _i3gqcq2l.CoachEndpoint).createShare(
+                    session,
+                    params['label'],
+                  ),
+        ),
+        'listShares': _is.MethodConnector(
+          name: 'listShares',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['coach'] as _i3gqcq2l.CoachEndpoint)
+                  .listShares(session),
+        ),
+        'revokeShare': _is.MethodConnector(
+          name: 'revokeShare',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['coach'] as _i3gqcq2l.CoachEndpoint).revokeShare(
+                    session,
+                    params['code'],
+                  ),
+        ),
+        'notes': _is.MethodConnector(
+          name: 'notes',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['coach'] as _i3gqcq2l.CoachEndpoint).notes(
+                session,
+              ),
+        ),
+        'markNotesRead': _is.MethodConnector(
+          name: 'markNotesRead',
+          params: {},
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['coach'] as _i3gqcq2l.CoachEndpoint)
+                  .markNotesRead(session),
+        ),
+      },
+    );
+    connectors['coachView'] = _is.EndpointConnector(
+      name: 'coachView',
+      endpoint: endpoints['coachView']!,
+      methodConnectors: {
+        'view': _is.MethodConnector(
+          name: 'view',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'utcOffsetMinutes': _is.ParameterDescription(
+              name: 'utcOffsetMinutes',
+              type: _is.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async =>
+                  (endpoints['coachView'] as _i3gqcq2l.CoachViewEndpoint).view(
+                    session,
+                    params['code'],
+                    params['utcOffsetMinutes'],
+                  ),
+        ),
+        'leaveNote': _is.MethodConnector(
+          name: 'leaveNote',
+          params: {
+            'code': _is.ParameterDescription(
+              name: 'code',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'authorName': _is.ParameterDescription(
+              name: 'authorName',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+            'message': _is.ParameterDescription(
+              name: 'message',
+              type: _is.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _is.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['coachView'] as _i3gqcq2l.CoachViewEndpoint)
+                  .leaveNote(
+                    session,
+                    params['code'],
+                    params['authorName'],
+                    params['message'],
+                  ),
         ),
       },
     );

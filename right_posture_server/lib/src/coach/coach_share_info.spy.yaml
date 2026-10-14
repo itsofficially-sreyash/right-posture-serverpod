@@ -1,0 +1,11 @@
+### A share link as shown to its owner.
+class: CoachShareInfo
+fields:
+  code: String
+  label: String
+  url: String
+  createdAt: DateTime
+  viewCount: int
+  lastViewedAt: DateTime?
+  noteCount: int
+  unreadNoteCount: int

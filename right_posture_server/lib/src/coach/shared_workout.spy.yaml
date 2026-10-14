@@ -1,0 +1,10 @@
+### Summary of one workout as seen by a coach.
+class: SharedWorkout
+fields:
+  completedAt: DateTime
+  exercises: List<String>
+  sets: int
+  totalReps: int
+  averageFormScore: double?
+  degradedReps: int
+  note: String?

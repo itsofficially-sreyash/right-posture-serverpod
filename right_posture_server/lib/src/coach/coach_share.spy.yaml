@@ -1,0 +1,21 @@
+### A read-only link that lets a coach see a user's progress and leave notes.
+class: CoachShare
+table: coach_share
+fields:
+  ### Owner of the shared progress (Serverpod auth user id).
+  authUserId: UuidValue
+  ### Random, unguessable code used in the share link.
+  code: String
+  ### Who the link is for, e.g. "Coach Priya".
+  label: String
+  createdAt: DateTime, default=now
+  revokedAt: DateTime?
+  viewCount: int, default=0
+  lastViewedAt: DateTime?
+  notes: List<CoachNote>?, relation(name=share_notes)
+indexes:
+  coach_share_code_idx:
+    fields: code
+    unique: true
+  coach_share_owner_idx:
+    fields: authUserId

@@ -6,7 +6,10 @@ import 'account_page.dart';
 import 'app_theme.dart';
 
 class SettingsPage extends ConsumerWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, this.showAccount = true});
+
+  /// False when opened from the profile tab, which already is the account.
+  final bool showAccount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,21 +49,22 @@ class SettingsPage extends ConsumerWidget {
                   value: preferences.soundEnabled,
                   onChanged: controller.setSoundEnabled,
                 ),
-                ListTile(
-                  key: const Key('account_setting'),
-                  leading: const Icon(Icons.cloud_outlined),
-                  title: const Text('Account & cloud backup'),
-                  subtitle: const Text(
-                    'Sync workout summaries and view your server progress '
-                    'report.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AccountPage(),
+                if (showAccount)
+                  ListTile(
+                    key: const Key('account_setting'),
+                    leading: const Icon(Icons.cloud_outlined),
+                    title: const Text('Account & cloud backup'),
+                    subtitle: const Text(
+                      'Sync workout summaries and view your server progress '
+                      'report.',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const AccountPage(),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

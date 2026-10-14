@@ -1,0 +1,12 @@
+### Feedback a coach left through a share link.
+class: CoachNote
+table: coach_note
+fields:
+  shareId: int, relation(name=share_notes, parent=coach_share, onDelete=Cascade)
+  authorName: String
+  message: String
+  createdAt: DateTime, default=now
+  readAt: DateTime?
+indexes:
+  coach_note_share_idx:
+    fields: shareId, createdAt

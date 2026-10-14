@@ -11,6 +11,10 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:right_posture_client/src/protocol/coach/coach_note_info.dart'
+    as _i4e57982;
+import 'package:right_posture_client/src/protocol/coach/coach_share_info.dart'
+    as _iv4v21xh;
 import 'package:right_posture_client/src/protocol/workouts/synced_workout.dart'
     as _i7y060ko;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
@@ -18,12 +22,26 @@ import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _iaic;
 import 'package:serverpod_client/serverpod_client.dart' as _isc;
+import 'coach/coach_note.dart' as _i27dye3b;
+import 'coach/coach_note_info.dart' as _ip4miwti;
+import 'coach/coach_share.dart' as _i8dr5z6y;
+import 'coach/coach_share_info.dart' as _i8wjefyn;
+import 'coach/shared_note.dart' as _if69a7gd;
+import 'coach/shared_progress.dart' as _ircl8yoo;
+import 'coach/shared_workout.dart' as _ih0q5mdl;
 import 'progress/exercise_progress.dart' as _ixpsjq05;
 import 'progress/progress_report.dart' as _i5135299;
 import 'workouts/sync_status.dart' as _ibnhdbpa;
 import 'workouts/synced_workout.dart' as _iqbxod9e;
 import 'workouts/workout_record.dart' as _icm4262y;
 import 'workouts/workout_set_record.dart' as _i128p1vq;
+export 'coach/coach_note.dart';
+export 'coach/coach_note_info.dart';
+export 'coach/coach_share.dart';
+export 'coach/coach_share_info.dart';
+export 'coach/shared_note.dart';
+export 'coach/shared_progress.dart';
+export 'coach/shared_workout.dart';
 export 'progress/exercise_progress.dart';
 export 'progress/progress_report.dart';
 export 'workouts/sync_status.dart';
@@ -66,6 +84,27 @@ class Protocol extends _isc.SerializationManager {
       }
     }
 
+    if (t == _i27dye3b.CoachNote) {
+      return _i27dye3b.CoachNote.fromJson(data) as T;
+    }
+    if (t == _ip4miwti.CoachNoteInfo) {
+      return _ip4miwti.CoachNoteInfo.fromJson(data) as T;
+    }
+    if (t == _i8dr5z6y.CoachShare) {
+      return _i8dr5z6y.CoachShare.fromJson(data) as T;
+    }
+    if (t == _i8wjefyn.CoachShareInfo) {
+      return _i8wjefyn.CoachShareInfo.fromJson(data) as T;
+    }
+    if (t == _if69a7gd.SharedNote) {
+      return _if69a7gd.SharedNote.fromJson(data) as T;
+    }
+    if (t == _ircl8yoo.SharedProgress) {
+      return _ircl8yoo.SharedProgress.fromJson(data) as T;
+    }
+    if (t == _ih0q5mdl.SharedWorkout) {
+      return _ih0q5mdl.SharedWorkout.fromJson(data) as T;
+    }
     if (t == _ixpsjq05.ExerciseProgress) {
       return _ixpsjq05.ExerciseProgress.fromJson(data) as T;
     }
@@ -83,6 +122,31 @@ class Protocol extends _isc.SerializationManager {
     }
     if (t == _i128p1vq.WorkoutSetRecord) {
       return _i128p1vq.WorkoutSetRecord.fromJson(data) as T;
+    }
+    if (t == _isc.getType<_i27dye3b.CoachNote?>()) {
+      return (data != null ? _i27dye3b.CoachNote.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ip4miwti.CoachNoteInfo?>()) {
+      return (data != null ? _ip4miwti.CoachNoteInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_i8dr5z6y.CoachShare?>()) {
+      return (data != null ? _i8dr5z6y.CoachShare.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_i8wjefyn.CoachShareInfo?>()) {
+      return (data != null ? _i8wjefyn.CoachShareInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_if69a7gd.SharedNote?>()) {
+      return (data != null ? _if69a7gd.SharedNote.fromJson(data) : null) as T;
+    }
+    if (t == _isc.getType<_ircl8yoo.SharedProgress?>()) {
+      return (data != null ? _ircl8yoo.SharedProgress.fromJson(data) : null)
+          as T;
+    }
+    if (t == _isc.getType<_ih0q5mdl.SharedWorkout?>()) {
+      return (data != null ? _ih0q5mdl.SharedWorkout.fromJson(data) : null)
+          as T;
     }
     if (t == _isc.getType<_ixpsjq05.ExerciseProgress?>()) {
       return (data != null ? _ixpsjq05.ExerciseProgress.fromJson(data) : null)
@@ -105,6 +169,32 @@ class Protocol extends _isc.SerializationManager {
     }
     if (t == _isc.getType<_i128p1vq.WorkoutSetRecord?>()) {
       return (data != null ? _i128p1vq.WorkoutSetRecord.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_i27dye3b.CoachNote>) {
+      return (data as List)
+              .map((e) => deserialize<_i27dye3b.CoachNote>(e))
+              .toList()
+          as T;
+    }
+    if (t == _isc.getType<List<_i27dye3b.CoachNote>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i27dye3b.CoachNote>(e))
+                    .toList()
+              : null)
+          as T;
+    }
+    if (t == List<_ih0q5mdl.SharedWorkout>) {
+      return (data as List)
+              .map((e) => deserialize<_ih0q5mdl.SharedWorkout>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_if69a7gd.SharedNote>) {
+      return (data as List)
+              .map((e) => deserialize<_if69a7gd.SharedNote>(e))
+              .toList()
           as T;
     }
     if (t == List<String>) {
@@ -130,6 +220,18 @@ class Protocol extends _isc.SerializationManager {
               : null)
           as T;
     }
+    if (t == List<_iv4v21xh.CoachShareInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iv4v21xh.CoachShareInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_i4e57982.CoachNoteInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_i4e57982.CoachNoteInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_i7y060ko.SyncedWorkout>) {
       return (data as List)
               .map((e) => deserialize<_i7y060ko.SyncedWorkout>(e))
@@ -147,6 +249,13 @@ class Protocol extends _isc.SerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
+      _i27dye3b.CoachNote => 'CoachNote',
+      _ip4miwti.CoachNoteInfo => 'CoachNoteInfo',
+      _i8dr5z6y.CoachShare => 'CoachShare',
+      _i8wjefyn.CoachShareInfo => 'CoachShareInfo',
+      _if69a7gd.SharedNote => 'SharedNote',
+      _ircl8yoo.SharedProgress => 'SharedProgress',
+      _ih0q5mdl.SharedWorkout => 'SharedWorkout',
       _ixpsjq05.ExerciseProgress => 'ExerciseProgress',
       _i5135299.ProgressReport => 'ProgressReport',
       _ibnhdbpa.SyncStatus => 'SyncStatus',
@@ -170,6 +279,20 @@ class Protocol extends _isc.SerializationManager {
     }
 
     switch (data) {
+      case _i27dye3b.CoachNote():
+        return 'CoachNote';
+      case _ip4miwti.CoachNoteInfo():
+        return 'CoachNoteInfo';
+      case _i8dr5z6y.CoachShare():
+        return 'CoachShare';
+      case _i8wjefyn.CoachShareInfo():
+        return 'CoachShareInfo';
+      case _if69a7gd.SharedNote():
+        return 'SharedNote';
+      case _ircl8yoo.SharedProgress():
+        return 'SharedProgress';
+      case _ih0q5mdl.SharedWorkout():
+        return 'SharedWorkout';
       case _ixpsjq05.ExerciseProgress():
         return 'ExerciseProgress';
       case _i5135299.ProgressReport():
@@ -203,6 +326,27 @@ class Protocol extends _isc.SerializationManager {
     var dataClassName = data['className'];
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
+    }
+    if (dataClassName == 'CoachNote') {
+      return deserialize<_i27dye3b.CoachNote>(data['data']);
+    }
+    if (dataClassName == 'CoachNoteInfo') {
+      return deserialize<_ip4miwti.CoachNoteInfo>(data['data']);
+    }
+    if (dataClassName == 'CoachShare') {
+      return deserialize<_i8dr5z6y.CoachShare>(data['data']);
+    }
+    if (dataClassName == 'CoachShareInfo') {
+      return deserialize<_i8wjefyn.CoachShareInfo>(data['data']);
+    }
+    if (dataClassName == 'SharedNote') {
+      return deserialize<_if69a7gd.SharedNote>(data['data']);
+    }
+    if (dataClassName == 'SharedProgress') {
+      return deserialize<_ircl8yoo.SharedProgress>(data['data']);
+    }
+    if (dataClassName == 'SharedWorkout') {
+      return deserialize<_ih0q5mdl.SharedWorkout>(data['data']);
     }
     if (dataClassName == 'ExerciseProgress') {
       return deserialize<_ixpsjq05.ExerciseProgress>(data['data']);

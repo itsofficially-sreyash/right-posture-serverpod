@@ -11,6 +11,15 @@ emailIdp:
   - hasAccount:
 jwtRefresh:
   - refreshAccessToken:
+coach:
+  - createShare:
+  - listShares:
+  - revokeShare:
+  - notes:
+  - markNotesRead:
+coachView:
+  - view:
+  - leaveNote:
 progress:
   - report:
 workout:

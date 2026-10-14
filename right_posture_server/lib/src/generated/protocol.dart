@@ -11,6 +11,10 @@
 // ignore_for_file: dead_code, unnecessary_type_check
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+import 'package:right_posture_server/src/generated/coach/coach_note_info.dart'
+    as _iyfe0fzo;
+import 'package:right_posture_server/src/generated/coach/coach_share_info.dart'
+    as _iyjlb0nz;
 import 'package:right_posture_server/src/generated/workouts/synced_workout.dart'
     as _i1tsvs2d;
 import 'package:serverpod/protocol.dart' as _isp;
@@ -19,12 +23,26 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _iacs;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _iais;
+import 'coach/coach_note.dart' as _i27dye3b;
+import 'coach/coach_note_info.dart' as _ip4miwti;
+import 'coach/coach_share.dart' as _i8dr5z6y;
+import 'coach/coach_share_info.dart' as _i8wjefyn;
+import 'coach/shared_note.dart' as _if69a7gd;
+import 'coach/shared_progress.dart' as _ircl8yoo;
+import 'coach/shared_workout.dart' as _ih0q5mdl;
 import 'progress/exercise_progress.dart' as _ixpsjq05;
 import 'progress/progress_report.dart' as _i5135299;
 import 'workouts/sync_status.dart' as _ibnhdbpa;
 import 'workouts/synced_workout.dart' as _iqbxod9e;
 import 'workouts/workout_record.dart' as _icm4262y;
 import 'workouts/workout_set_record.dart' as _i128p1vq;
+export 'coach/coach_note.dart';
+export 'coach/coach_note_info.dart';
+export 'coach/coach_share.dart';
+export 'coach/coach_share_info.dart';
+export 'coach/shared_note.dart';
+export 'coach/shared_progress.dart';
+export 'coach/shared_workout.dart';
 export 'progress/exercise_progress.dart';
 export 'progress/progress_report.dart';
 export 'workouts/sync_status.dart';
@@ -40,6 +58,173 @@ class Protocol extends _is.DatabaseSerializationManager {
   static final Protocol _instance = Protocol._().._registerHostProtocols();
 
   static List<_isp.TableDefinition> get targetTableDefinitions => [
+    _isp.TableDefinition(
+      name: 'coach_note',
+      dartName: 'CoachNote',
+      schema: 'public',
+      module: 'right_posture',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'shareId',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+        ),
+        _isp.ColumnDefinition(
+          name: 'authorName',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'message',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'readAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [
+        _isp.ForeignKeyDefinition(
+          constraintName: 'coach_note_fk_0',
+          columns: ['shareId'],
+          referenceTable: 'coach_share',
+          referenceTableSchema: 'public',
+          referenceColumns: ['id'],
+          onUpdate: _isp.ForeignKeyAction.noAction,
+          onDelete: _isp.ForeignKeyAction.cascade,
+          matchType: null,
+        ),
+      ],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'coach_note_share_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'shareId',
+            ),
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'createdAt',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
+    _isp.TableDefinition(
+      name: 'coach_share',
+      dartName: 'CoachShare',
+      schema: 'public',
+      module: 'right_posture',
+      columns: [
+        _isp.ColumnDefinition(
+          name: 'id',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'serial',
+        ),
+        _isp.ColumnDefinition(
+          name: 'authUserId',
+          columnType: _isp.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _isp.ColumnDefinition(
+          name: 'code',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'label',
+          columnType: _isp.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _isp.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'now',
+        ),
+        _isp.ColumnDefinition(
+          name: 'revokedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+        _isp.ColumnDefinition(
+          name: 'viewCount',
+          columnType: _isp.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int',
+          columnDefault: '0',
+        ),
+        _isp.ColumnDefinition(
+          name: 'lastViewedAt',
+          columnType: _isp.ColumnType.timestampWithoutTimeZone,
+          isNullable: true,
+          dartType: 'DateTime?',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _isp.IndexDefinition(
+          indexName: 'coach_share_code_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'code',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+        _isp.IndexDefinition(
+          indexName: 'coach_share_owner_idx',
+          tableSpace: null,
+          elements: [
+            _isp.IndexElementDefinition(
+              type: _isp.IndexElementDefinitionType.column,
+              definition: 'authUserId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     _isp.TableDefinition(
       name: 'workout_record',
       dartName: 'WorkoutRecord',
@@ -297,6 +482,27 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
 
+    if (t == _i27dye3b.CoachNote) {
+      return _i27dye3b.CoachNote.fromJson(data) as T;
+    }
+    if (t == _ip4miwti.CoachNoteInfo) {
+      return _ip4miwti.CoachNoteInfo.fromJson(data) as T;
+    }
+    if (t == _i8dr5z6y.CoachShare) {
+      return _i8dr5z6y.CoachShare.fromJson(data) as T;
+    }
+    if (t == _i8wjefyn.CoachShareInfo) {
+      return _i8wjefyn.CoachShareInfo.fromJson(data) as T;
+    }
+    if (t == _if69a7gd.SharedNote) {
+      return _if69a7gd.SharedNote.fromJson(data) as T;
+    }
+    if (t == _ircl8yoo.SharedProgress) {
+      return _ircl8yoo.SharedProgress.fromJson(data) as T;
+    }
+    if (t == _ih0q5mdl.SharedWorkout) {
+      return _ih0q5mdl.SharedWorkout.fromJson(data) as T;
+    }
     if (t == _ixpsjq05.ExerciseProgress) {
       return _ixpsjq05.ExerciseProgress.fromJson(data) as T;
     }
@@ -314,6 +520,31 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _i128p1vq.WorkoutSetRecord) {
       return _i128p1vq.WorkoutSetRecord.fromJson(data) as T;
+    }
+    if (t == _is.getType<_i27dye3b.CoachNote?>()) {
+      return (data != null ? _i27dye3b.CoachNote.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ip4miwti.CoachNoteInfo?>()) {
+      return (data != null ? _ip4miwti.CoachNoteInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_i8dr5z6y.CoachShare?>()) {
+      return (data != null ? _i8dr5z6y.CoachShare.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_i8wjefyn.CoachShareInfo?>()) {
+      return (data != null ? _i8wjefyn.CoachShareInfo.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_if69a7gd.SharedNote?>()) {
+      return (data != null ? _if69a7gd.SharedNote.fromJson(data) : null) as T;
+    }
+    if (t == _is.getType<_ircl8yoo.SharedProgress?>()) {
+      return (data != null ? _ircl8yoo.SharedProgress.fromJson(data) : null)
+          as T;
+    }
+    if (t == _is.getType<_ih0q5mdl.SharedWorkout?>()) {
+      return (data != null ? _ih0q5mdl.SharedWorkout.fromJson(data) : null)
+          as T;
     }
     if (t == _is.getType<_ixpsjq05.ExerciseProgress?>()) {
       return (data != null ? _ixpsjq05.ExerciseProgress.fromJson(data) : null)
@@ -336,6 +567,32 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
     if (t == _is.getType<_i128p1vq.WorkoutSetRecord?>()) {
       return (data != null ? _i128p1vq.WorkoutSetRecord.fromJson(data) : null)
+          as T;
+    }
+    if (t == List<_i27dye3b.CoachNote>) {
+      return (data as List)
+              .map((e) => deserialize<_i27dye3b.CoachNote>(e))
+              .toList()
+          as T;
+    }
+    if (t == _is.getType<List<_i27dye3b.CoachNote>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<_i27dye3b.CoachNote>(e))
+                    .toList()
+              : null)
+          as T;
+    }
+    if (t == List<_ih0q5mdl.SharedWorkout>) {
+      return (data as List)
+              .map((e) => deserialize<_ih0q5mdl.SharedWorkout>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_if69a7gd.SharedNote>) {
+      return (data as List)
+              .map((e) => deserialize<_if69a7gd.SharedNote>(e))
+              .toList()
           as T;
     }
     if (t == List<String>) {
@@ -361,6 +618,18 @@ class Protocol extends _is.DatabaseSerializationManager {
               : null)
           as T;
     }
+    if (t == List<_iyjlb0nz.CoachShareInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iyjlb0nz.CoachShareInfo>(e))
+              .toList()
+          as T;
+    }
+    if (t == List<_iyfe0fzo.CoachNoteInfo>) {
+      return (data as List)
+              .map((e) => deserialize<_iyfe0fzo.CoachNoteInfo>(e))
+              .toList()
+          as T;
+    }
     if (t == List<_i1tsvs2d.SyncedWorkout>) {
       return (data as List)
               .map((e) => deserialize<_i1tsvs2d.SyncedWorkout>(e))
@@ -381,6 +650,13 @@ class Protocol extends _is.DatabaseSerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
+      _i27dye3b.CoachNote => 'CoachNote',
+      _ip4miwti.CoachNoteInfo => 'CoachNoteInfo',
+      _i8dr5z6y.CoachShare => 'CoachShare',
+      _i8wjefyn.CoachShareInfo => 'CoachShareInfo',
+      _if69a7gd.SharedNote => 'SharedNote',
+      _ircl8yoo.SharedProgress => 'SharedProgress',
+      _ih0q5mdl.SharedWorkout => 'SharedWorkout',
       _ixpsjq05.ExerciseProgress => 'ExerciseProgress',
       _i5135299.ProgressReport => 'ProgressReport',
       _ibnhdbpa.SyncStatus => 'SyncStatus',
@@ -404,6 +680,20 @@ class Protocol extends _is.DatabaseSerializationManager {
     }
 
     switch (data) {
+      case _i27dye3b.CoachNote():
+        return 'CoachNote';
+      case _ip4miwti.CoachNoteInfo():
+        return 'CoachNoteInfo';
+      case _i8dr5z6y.CoachShare():
+        return 'CoachShare';
+      case _i8wjefyn.CoachShareInfo():
+        return 'CoachShareInfo';
+      case _if69a7gd.SharedNote():
+        return 'SharedNote';
+      case _ircl8yoo.SharedProgress():
+        return 'SharedProgress';
+      case _ih0q5mdl.SharedWorkout():
+        return 'SharedWorkout';
       case _ixpsjq05.ExerciseProgress():
         return 'ExerciseProgress';
       case _i5135299.ProgressReport():
@@ -441,6 +731,27 @@ class Protocol extends _is.DatabaseSerializationManager {
     var dataClassName = data['className'];
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
+    }
+    if (dataClassName == 'CoachNote') {
+      return deserialize<_i27dye3b.CoachNote>(data['data']);
+    }
+    if (dataClassName == 'CoachNoteInfo') {
+      return deserialize<_ip4miwti.CoachNoteInfo>(data['data']);
+    }
+    if (dataClassName == 'CoachShare') {
+      return deserialize<_i8dr5z6y.CoachShare>(data['data']);
+    }
+    if (dataClassName == 'CoachShareInfo') {
+      return deserialize<_i8wjefyn.CoachShareInfo>(data['data']);
+    }
+    if (dataClassName == 'SharedNote') {
+      return deserialize<_if69a7gd.SharedNote>(data['data']);
+    }
+    if (dataClassName == 'SharedProgress') {
+      return deserialize<_ircl8yoo.SharedProgress>(data['data']);
+    }
+    if (dataClassName == 'SharedWorkout') {
+      return deserialize<_ih0q5mdl.SharedWorkout>(data['data']);
     }
     if (dataClassName == 'ExerciseProgress') {
       return deserialize<_ixpsjq05.ExerciseProgress>(data['data']);
@@ -501,6 +812,10 @@ class Protocol extends _is.DatabaseSerializationManager {
       }
     }
     switch (t) {
+      case _i27dye3b.CoachNote:
+        return _i27dye3b.CoachNote.t;
+      case _i8dr5z6y.CoachShare:
+        return _i8dr5z6y.CoachShare.t;
       case _icm4262y.WorkoutRecord:
         return _icm4262y.WorkoutRecord.t;
       case _i128p1vq.WorkoutSetRecord:
