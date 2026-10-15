@@ -47,4 +47,4 @@ jobs:
 
       - name: Run tests
         working-directory: right_posture_server
-        run: dart test
+        run: dart test --concurrency=1  # test files share one embedded Postgres
