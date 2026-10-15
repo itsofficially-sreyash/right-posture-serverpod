@@ -150,8 +150,5 @@ cd right_posture_client && dart run tool/smoke.dart http://localhost:8080/
 ## Built with
 Flutter · Dart · Serverpod 4 (endpoints, ORM, migrations, auth IdP, web server, Serverpod Cloud) · PostgreSQL · Google ML Kit Pose Detection · Riverpod · fl_chart
 
-### AI tools
-Built with help from AI coding assistants (Claude Code), as the hackathon rules allow. They were used for code generation, refactoring, tests and documentation.
-
 ## Responsible claims
 Right Posture supports exercises a physiotherapist has prescribed. It is not a medical device. It does not diagnose, prescribe or replace professional care. Patients should follow their physiotherapist's instructions and stop if an exercise causes pain.
